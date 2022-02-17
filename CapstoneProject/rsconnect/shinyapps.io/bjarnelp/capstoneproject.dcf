@@ -5,7 +5,7 @@ account: bjarnelp
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5674805
-bundleId: 5589538
+bundleId: 5589604
 url: https://bjarnelp.shinyapps.io/capstoneproject/
-when: 1645101870.57583
-lastSyncTime: 1645101870.57586
+when: 1645103467.15435
+lastSyncTime: 1645103467.15446
