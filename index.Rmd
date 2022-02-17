@@ -1,0 +1,57 @@
+--- 
+title: "Data Science and Tidymodels"
+subtitle: "Case Studies"
+author: "Bjarne Lund Pedersen"
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+documentclass: book
+bibliography: [book.bib, packages.bib]
+# url: your book url like https://bookdown.org/yihui/bookdown
+# cover-image: path to the social sharing image like images/cover.jpg
+#description: |
+#  This is a minimal example of using the bookdown package to write a book.
+#  The HTML output format for this example is bookdown::gitbook,
+#  set in the _output.yml file.
+link-citations: yes
+#github-repo: rstudio/bookdown-demo
+---
+
+```{r load_packages, include=FALSE}
+require(tidyverse)
+require(shiny)
+require(lubridate)
+require(jsonlite)
+require(leaflet)
+require(knitr)
+require(leafem)
+require(REdaS)
+require(glue)
+require(tidymodels)
+require(glmnet)
+require(LiblineaR)
+require(kernlab)
+require(kknn)
+require(bestNormalize)
+require(finetune)
+```
+
+# Introduction
+
+In this book I will give examples of the use of Tidyverse packages in data science studies.
+
+Chapter 1 contains a transcription of the final capstone project from the IBM Python Data Science professional certificate. Emphasis in this chapter will primarily be on data collection, data cleaning, data wrangling and EDA, while modelling will play a minor role.
+
+Chapter 2 contains various modelling techniques for classificiation including logit-regression, classification trees, LDA, SVM and boosting trees using XGBoost. The Kaggle Titinic dataset will be used for this purpose.
+
+Chapter 3 contaings various modelling techniques for regression including linear regression, generalized linear models, generalized additive models and boosting trees for regression. The Kaggle Ames housing dataset will be used in this chapter.
+
+Chapter 4 contains modelling techniques for time-series using the Kaggle Store Sales dataset.
+
+Chapter 5 contains image recognition using Neural Networks. Fror this purpose we will use the Kaggel "Petal to the Metal" dataset.
+
+```{r include=FALSE}
+# automatically create a bib database for R packages
+knitr::write_bib(c(
+  .packages(), 'bookdown', 'knitr', 'rmarkdown'
+), 'packages.bib')
+```

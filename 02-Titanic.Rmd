@@ -1,0 +1,7 @@
+# Titanic - studies on classification
+
+In this chapter we will turn our focus til classification techniques. The dataset used will be the Kaggle dataset *Titanic*.
+
+The first section will focus on data collection and data wrangling. The second section has its focus on EDA. In the third and last section we will study the following classification models and how to optimize them for the dataset: Logistic Regression, kNN, SVM, XGBoost and lightGBM.
+
+The evaluation metric will be the Kaggle score for each model.
