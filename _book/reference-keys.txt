@@ -16,3 +16,6 @@ titanic---studies-on-classification
 ames-housing-data---regression-methods
 store-sales---time-series-prediction
 petals-to-the-metal---image-classification-using-tensorflow
+cover-image-path-to-the-social-sharing-image-like-imagescover.jpg
+data-collection-and-cleaning
+eda

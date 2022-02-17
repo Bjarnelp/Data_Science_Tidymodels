@@ -1,7 +1,58 @@
 # Titanic - studies on classification
 
-In this chapter we will turn our focus til classification techniques. The dataset used will be the Kaggle dataset *Titanic*.
+In this chapter we will turn our focus til classification techniques. The data set used will be the Kaggle data set *Titanic*.
 
-The first section will focus on data collection and data wrangling. The second section has its focus on EDA. In the third and last section we will study the following classification models and how to optimize them for the dataset: Logistic Regression, kNN, SVM, XGBoost and lightGBM.
+The first section will focus on data collection and data wrangling. The second section has its focus on EDA. In the third and last section we will study the following classification models and how to optimize them for the dataset: Logistic Regression, LDA, kNN, SVM, XGBoost and lightGBM.
 
 The evaluation metric will be the Kaggle score for each model.
+
+## Data collection and cleaning
+
+The data was downloaded from Kaggle.com. The data set is made up of two parts. Part 1 is a training set for supervised learning. Part 2 is a test set, where the outcome column has been removed.
+
+We will begin by loading the two data files and have a look at the data types of each column:
+```{r}
+titanic_train <- read_csv("./titanic_train.csv")
+titanic_test <- read_csv("./titanic_test.csv")
+```
+We see that the training data is comprised of 891 observation of 12 features, whereas the test data is comprised of 418 observations of 11 features. 
+
+We have 5 features coded as charaters: Name, Sex, Ticket, Cabin, Embarked.
+
+We have 6 numeric features: PassengerId, Pclass, Age, SibSp. Parch, Fare.
+
+Let us first see if we need to deal with missing values:
+```{r}
+titanic_train %>% 
+  select(which(colSums(is.na(.))>0)) %>% 
+  summarise_all(~ sum(is.na(.)))
+```
+We see that most of the cabin data is missing. We will not deal with these for now, but drop the column, when doing the actual modelling later. 
+
+For embarked we will replace the missing values with the mode. We start by determining the mode:
+```{r}
+titanic_train %>% group_by(Embarked) %>% count() %>% arrange(desc(n))
+```
+
+Then we replace the NAs by "S":
+```{r}
+titanic_train <- titanic_train %>% mutate(Embarked = replace(Embarked,is.na(Embarked),"S"))
+```
+
+Next, let's have a look at the distribution of age:
+```{r}
+titanic_train %>% count(Age_interval = cut_interval(Age,n=6))
+```
+
+We get see that Age seems right skewed. To verify this we calculate the skewness using the {moments} package:
+```{r}
+titanic_train %>% select(Age) %>% filter(!is.na(.)) %>% summarise(Skewness = moments::skewness(.))
+```
+With the right skewed age data we choose to impute the missing values in Age column with the median.
+```{r}
+titanic_train <- titanic_train %>% mutate(Age = replace(Age,is.na(Age),median(Age,na.rm=TRUE)))
+```
+
+With this we conclude the data collection and preparation process and move on to the EDA.
+
+## EDA

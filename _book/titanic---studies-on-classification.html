@@ -10,10 +10,10 @@
 
   <meta property="og:title" content="Chapter 3 Titanic - studies on classification | Data Science and Tidymodels" />
   <meta property="og:type" content="book" />
+  <meta property="og:url" content="https://dswtmsc.netlify.app/index.html" />
   
   
-  
-  
+  <meta name="github-repo" content="https://github.com/Bjarnelp/Data_Science_Tidymodels" />
 
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Chapter 3 Titanic - studies on classification | Data Science and Tidymodels" />
@@ -53,23 +53,6 @@
 
 <link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
-<script src="libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
-<link href="libs/leaflet-1.3.1/leaflet.css" rel="stylesheet" />
-<script src="libs/leaflet-1.3.1/leaflet.js"></script>
-<link href="libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet" />
-<script src="libs/proj4-2.6.2/proj4.min.js"></script>
-<script src="libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
-<link href="libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet" />
-<script src="libs/leaflet-binding-2.1.0/leaflet.js"></script>
-<link href="libs/leaflet-awesomemarkers-2.0.3/leaflet.awesome-markers.css" rel="stylesheet" />
-<script src="libs/leaflet-awesomemarkers-2.0.3/leaflet.awesome-markers.min.js"></script>
-<link href="libs/ionicons-2.0.1/ionicons.min.css" rel="stylesheet" />
-<link href="libs/leaflet-markercluster-1.0.5/MarkerCluster.css" rel="stylesheet" />
-<link href="libs/leaflet-markercluster-1.0.5/MarkerCluster.Default.css" rel="stylesheet" />
-<script src="libs/leaflet-markercluster-1.0.5/leaflet.markercluster.js"></script>
-<script src="libs/leaflet-markercluster-1.0.5/leaflet.markercluster.freezable.js"></script>
-<script src="libs/leaflet-markercluster-1.0.5/leaflet.markercluster.layersupport.js"></script>
-<script src="libs/clipboard-0.0.1/setClipboardText.js"></script>
 
 
 <style type="text/css">
@@ -154,7 +137,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li><a href="./">Data Science and Tidymodels</a></li>
 
 <li class="divider"></li>
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> cover-image: path to the social sharing image like images/cover.jpg</a></li>
 <li class="chapter" data-level="2" data-path="machine-learning-capstone-project.html"><a href="machine-learning-capstone-project.html"><i class="fa fa-check"></i><b>2</b> Machine Learning Capstone Project</a>
 <ul>
 <li class="chapter" data-level="2.1" data-path="machine-learning-capstone-project.html"><a href="machine-learning-capstone-project.html#data-collection"><i class="fa fa-check"></i><b>2.1</b> Data Collection</a></li>
@@ -174,7 +157,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.5.5" data-path="machine-learning-capstone-project.html"><a href="machine-learning-capstone-project.html#outro"><i class="fa fa-check"></i><b>2.5.5</b> Outro</a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html"><i class="fa fa-check"></i><b>3</b> Titanic - studies on classification</a></li>
+<li class="chapter" data-level="3" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html"><i class="fa fa-check"></i><b>3</b> Titanic - studies on classification</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#data-collection-and-cleaning"><i class="fa fa-check"></i><b>3.1</b> Data collection and cleaning</a></li>
+<li class="chapter" data-level="3.2" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#eda"><i class="fa fa-check"></i><b>3.2</b> EDA</a></li>
+</ul></li>
 <li class="chapter" data-level="4" data-path="ames-housing-data---regression-methods.html"><a href="ames-housing-data---regression-methods.html"><i class="fa fa-check"></i><b>4</b> Ames Housing Data - regression methods</a></li>
 <li class="chapter" data-level="5" data-path="store-sales---time-series-prediction.html"><a href="store-sales---time-series-prediction.html"><i class="fa fa-check"></i><b>5</b> Store Sales - Time Series Prediction</a></li>
 <li class="chapter" data-level="6" data-path="petals-to-the-metal---image-classification-using-tensorflow.html"><a href="petals-to-the-metal---image-classification-using-tensorflow.html"><i class="fa fa-check"></i><b>6</b> Petals to the Metal - Image Classification using tensorflow</a></li>
@@ -197,10 +184,81 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="titanic---studies-on-classification" class="section level1" number="3">
 <h1><span class="header-section-number">Chapter 3</span> Titanic - studies on classification</h1>
-<p>In this chapter we will turn our focus til classification techniques. The dataset used will be the Kaggle dataset <em>Titanic</em>.</p>
-<p>The first section will focus on data collection and data wrangling. The second section has its focus on EDA. In the third and last section we will study the following classification models and how to optimize them for the dataset: Logistic Regression, kNN, SVM, XGBoost and lightGBM.</p>
+<p>In this chapter we will turn our focus til classification techniques. The data set used will be the Kaggle data set <em>Titanic</em>.</p>
+<p>The first section will focus on data collection and data wrangling. The second section has its focus on EDA. In the third and last section we will study the following classification models and how to optimize them for the dataset: Logistic Regression, LDA, kNN, SVM, XGBoost and lightGBM.</p>
 <p>The evaluation metric will be the Kaggle score for each model.</p>
+<div id="data-collection-and-cleaning" class="section level2" number="3.1">
+<h2><span class="header-section-number">3.1</span> Data collection and cleaning</h2>
+<p>The data was downloaded from Kaggle.com. The data set is made up of two parts. Part 1 is a training set for supervised learning. Part 2 is a test set, where the outcome column has been removed.</p>
+<p>We will begin by loading the two data files and have a look at the data types of each column:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="titanic---studies-on-classification.html#cb1-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;./titanic_train.csv&quot;</span>)</span></code></pre></div>
+<pre><code>## Rows: 891 Columns: 12
+## ── Column specification ────────────────────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): Name, Sex, Ticket, Cabin, Embarked
+## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="titanic---studies-on-classification.html#cb3-1" aria-hidden="true" tabindex="-1"></a>titanic_test <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;./titanic_test.csv&quot;</span>)</span></code></pre></div>
+<pre><code>## Rows: 418 Columns: 11
+## ── Column specification ────────────────────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): Name, Sex, Ticket, Cabin, Embarked
+## dbl (6): PassengerId, Pclass, Age, SibSp, Parch, Fare
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p>We see that the training data is comprised of 891 observation of 12 features, whereas the test data is comprised of 418 observations of 11 features.</p>
+<p>We have 5 features coded as charaters: Name, Sex, Ticket, Cabin, Embarked.</p>
+<p>We have 6 numeric features: PassengerId, Pclass, Age, SibSp. Parch, Fare.</p>
+<p>Let us first see if we need to deal with missing values:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="titanic---studies-on-classification.html#cb5-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> </span>
+<span id="cb5-2"><a href="titanic---studies-on-classification.html#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">which</span>(<span class="fu">colSums</span>(<span class="fu">is.na</span>(.))<span class="sc">&gt;</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-3"><a href="titanic---studies-on-classification.html#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise_all</span>(<span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.)))</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 3
+##     Age Cabin Embarked
+##   &lt;int&gt; &lt;int&gt;    &lt;int&gt;
+## 1   177   687        2</code></pre>
+<p>We see that most of the cabin data is missing. We will not deal with these for now, but drop the column, when doing the actual modelling later.</p>
+<p>For embarked we will replace the missing values with the mode. We start by determining the mode:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="titanic---studies-on-classification.html#cb7-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Embarked) <span class="sc">%&gt;%</span> <span class="fu">count</span>() <span class="sc">%&gt;%</span> <span class="fu">arrange</span>(<span class="fu">desc</span>(n))</span></code></pre></div>
+<pre><code>## # A tibble: 4 × 2
+## # Groups:   Embarked [4]
+##   Embarked     n
+##   &lt;chr&gt;    &lt;int&gt;
+## 1 S          644
+## 2 C          168
+## 3 Q           77
+## 4 &lt;NA&gt;         2</code></pre>
+<p>Then we replace the NAs by “S”:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="titanic---studies-on-classification.html#cb9-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="ot">&lt;-</span> titanic_train <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Embarked =</span> <span class="fu">replace</span>(Embarked,<span class="fu">is.na</span>(Embarked),<span class="st">&quot;S&quot;</span>))</span></code></pre></div>
+<p>Next, let’s have a look at the distribution of age:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="titanic---studies-on-classification.html#cb10-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> <span class="fu">count</span>(<span class="at">Age_interval =</span> <span class="fu">cut_interval</span>(Age,<span class="at">n=</span><span class="dv">6</span>))</span></code></pre></div>
+<pre><code>## # A tibble: 7 × 2
+##   Age_interval     n
+##   &lt;fct&gt;        &lt;int&gt;
+## 1 [0.42,13.7]     71
+## 2 (13.7,26.9]    248
+## 3 (26.9,40.2]    245
+## 4 (40.2,53.5]    100
+## 5 (53.5,66.7]     43
+## 6 (66.7,80]        7
+## 7 &lt;NA&gt;           177</code></pre>
+<p>We get see that Age seems right skewed. To verify this we calculate the skewness using the {moments} package:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="titanic---studies-on-classification.html#cb12-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> <span class="fu">select</span>(Age) <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(.)) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">Skewness =</span> moments<span class="sc">::</span><span class="fu">skewness</span>(.))</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 1
+##   Skewness
+##      &lt;dbl&gt;
+## 1    0.388</code></pre>
+<p>With the right skewed age data we choose to impute the missing values in Age column with the median.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="titanic---studies-on-classification.html#cb14-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="ot">&lt;-</span> titanic_train <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Age =</span> <span class="fu">replace</span>(Age,<span class="fu">is.na</span>(Age),<span class="fu">median</span>(Age,<span class="at">na.rm=</span><span class="cn">TRUE</span>)))</span></code></pre></div>
+<p>With this we conclude the data collection and preparation process and move on to the EDA.</p>
+</div>
+<div id="eda" class="section level2" number="3.2">
+<h2><span class="header-section-number">3.2</span> EDA</h2>
 
+</div>
 </div>
             </section>
 
