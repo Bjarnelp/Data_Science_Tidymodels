@@ -13,7 +13,7 @@ bibliography: [book.bib, packages.bib]
 #  The HTML output format for this example is bookdown::gitbook,
 #  set in the _output.yml file.
 link-citations: yes
-#github-repo: rstudio/bookdown-demo
+github-repo: https://github.com/Bjarnelp/Data_Science_Tidymodels
 ---
 
 ```{r load_packages, include=FALSE}
