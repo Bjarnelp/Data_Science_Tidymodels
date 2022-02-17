@@ -4,6 +4,8 @@ In this chapter we will have a look at the SpaceX dataset, which is used
 for the final capstone project in IBM Python Data Science Professional Certificate. Originally
 the project is Python based, but my aim is to do the exact things in R using the Tidyverse dialect.
 
+The GitHub repo for the original Python notebooks are [here](https://github.com/Bjarnelp/Machine-Learning-Capstone-Project).
+
 The project contains the following parts:
 
 Data , Data Wrangling, Data Visualizations, Interactive Maps using Leaflet, R Shiny app and Machine Learning models.
