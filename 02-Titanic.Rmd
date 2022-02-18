@@ -231,7 +231,7 @@ titanic_logit_results <-
     grid = titanic_logit_grid,
     control = titanic_logit_control, 
     metrics = metric_set(accuracy,roc_auc),
-    verbose = TRUE
+    verbose = FALSE
   )
 ```
 
@@ -290,24 +290,61 @@ encode factors and and de-corrolate features. Finally LDA might benefit from nor
 
 This leaves us with the following preprocessing recipes:
 ```{r}
-titanic_lda_rec_nonorm <- 
+titanic_lda_nonorm_rec <- 
   titanic_baserec %>% 
   step_impute_median(all_numeric_predictors()) %>% 
   step_impute_mode(all_nominal_predictors()) %>% 
   step_dummy(all_nominal_predictors()) %>% 
   step_zv(all_predictors())
 
-titanic_lda_rec_norm <- 
+titanic_lda_norm_rec <- 
   titanic_baserec %>% 
   step_impute_median(all_numeric_predictors()) %>% 
   step_impute_mode(all_nominal_predictors()) %>% 
   step_dummy(all_nominal_predictors()) %>% 
   step_zv(all_predictors()) %>% 
   step_YeoJohnson(all_numeric_predictors())
+
+titanic_lda_decor_nonorm_rec <- 
+  titanic_baserec %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_corr(all_predictors())
+
+titanic_lda_decor_norm_rec <- 
+  titanic_baserec %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_YeoJohnson(all_numeric_predictors()) %>% 
+  step_corr(all_predictors())
+
+titanic_lda_pca_nonorm_rec <- 
+  titanic_baserec %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_pca(all_predictors())
+
+titanic_lda_pca_norm_rec <- 
+  titanic_baserec %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_zv(all_predictors()) %>% 
+  step_YeoJohnson(all_numeric_predictors()) %>% 
+  step_pca(all_predictors())
 ```
 
+This section is temporarily aborted due to problems with {Discrim} package.
 
 ### kNN
+
+
 
 ### SVM
 
