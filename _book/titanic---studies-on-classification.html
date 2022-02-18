@@ -24,7 +24,7 @@
 <meta name="author" content="Bjarne Lund Pedersen" />
 
 
-<meta name="date" content="2022-02-17" />
+<meta name="date" content="2022-02-18" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -53,6 +53,8 @@
 
 <link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
 <script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
 
 
 <style type="text/css">
@@ -161,6 +163,15 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <ul>
 <li class="chapter" data-level="3.1" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#data-collection-and-cleaning"><i class="fa fa-check"></i><b>3.1</b> Data collection and cleaning</a></li>
 <li class="chapter" data-level="3.2" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#eda"><i class="fa fa-check"></i><b>3.2</b> EDA</a></li>
+<li class="chapter" data-level="3.3" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#modelling"><i class="fa fa-check"></i><b>3.3</b> Modelling</a>
+<ul>
+<li class="chapter" data-level="3.3.1" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#logistic-regression-1"><i class="fa fa-check"></i><b>3.3.1</b> Logistic Regression</a></li>
+<li class="chapter" data-level="3.3.2" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#lda"><i class="fa fa-check"></i><b>3.3.2</b> LDA</a></li>
+<li class="chapter" data-level="3.3.3" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#knn"><i class="fa fa-check"></i><b>3.3.3</b> kNN</a></li>
+<li class="chapter" data-level="3.3.4" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#svm"><i class="fa fa-check"></i><b>3.3.4</b> SVM</a></li>
+<li class="chapter" data-level="3.3.5" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#xgboost"><i class="fa fa-check"></i><b>3.3.5</b> XGBoost</a></li>
+<li class="chapter" data-level="3.3.6" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#lightgbm."><i class="fa fa-check"></i><b>3.3.6</b> lightGBM.</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="ames-housing-data---regression-methods.html"><a href="ames-housing-data---regression-methods.html"><i class="fa fa-check"></i><b>4</b> Ames Housing Data - regression methods</a></li>
 <li class="chapter" data-level="5" data-path="store-sales---time-series-prediction.html"><a href="store-sales---time-series-prediction.html"><i class="fa fa-check"></i><b>5</b> Store Sales - Time Series Prediction</a></li>
@@ -184,16 +195,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="titanic---studies-on-classification" class="section level1" number="3">
 <h1><span class="header-section-number">Chapter 3</span> Titanic - studies on classification</h1>
-<p>In this chapter we will turn our focus til classification techniques. The data set used will be the Kaggle data set <em>Titanic</em>.</p>
+<p>In this chapter we will turn our focus to classification techniques. The data set used will be the Kaggle data set <em>Titanic</em>.</p>
 <p>The first section will focus on data collection and data wrangling. The second section has its focus on EDA. In the third and last section we will study the following classification models and how to optimize them for the dataset: Logistic Regression, LDA, kNN, SVM, XGBoost and lightGBM.</p>
 <p>The evaluation metric will be the Kaggle score for each model.</p>
 <div id="data-collection-and-cleaning" class="section level2" number="3.1">
 <h2><span class="header-section-number">3.1</span> Data collection and cleaning</h2>
-<p>The data was downloaded from Kaggle.com. The data set is made up of two parts. Part 1 is a training set for supervised learning. Part 2 is a test set, where the outcome column has been removed.</p>
+<p>The data was downloaded from (Kaggle)[<a href="https://www.kaggle.com/c/titanic" class="uri">https://www.kaggle.com/c/titanic</a>]. The data set is made up of two parts. Part 1 is a training set for supervised learning. Part 2 is a test set, where the outcome column has been removed.</p>
 <p>We will begin by loading the two data files and have a look at the data types of each column:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="titanic---studies-on-classification.html#cb1-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;./titanic_train.csv&quot;</span>)</span></code></pre></div>
 <pre><code>## Rows: 891 Columns: 12
-## ── Column specification ────────────────────────────────────────────────────────────────────────
+## ── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (5): Name, Sex, Ticket, Cabin, Embarked
 ## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
@@ -202,7 +213,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="titanic---studies-on-classification.html#cb3-1" aria-hidden="true" tabindex="-1"></a>titanic_test <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;./titanic_test.csv&quot;</span>)</span></code></pre></div>
 <pre><code>## Rows: 418 Columns: 11
-## ── Column specification ────────────────────────────────────────────────────────────────────────
+## ── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (5): Name, Sex, Ticket, Cabin, Embarked
 ## dbl (6): PassengerId, Pclass, Age, SibSp, Parch, Fare
@@ -257,7 +268,281 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="eda" class="section level2" number="3.2">
 <h2><span class="header-section-number">3.2</span> EDA</h2>
+<p>Lets begin by looking at the prior distrubution of survivals:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="titanic---studies-on-classification.html#cb15-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> </span>
+<span id="cb15-2"><a href="titanic---studies-on-classification.html#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">as_factor</span>(Survived)) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-3"><a href="titanic---studies-on-classification.html#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">fct_recode</span>(Survived, <span class="st">&quot;Died&quot;</span><span class="ot">=</span><span class="st">&quot;0&quot;</span>,<span class="st">&quot;Survived&quot;</span><span class="ot">=</span><span class="st">&quot;1&quot;</span>)) <span class="sc">%&gt;%</span>  </span>
+<span id="cb15-4"><a href="titanic---studies-on-classification.html#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Survived,<span class="at">fill=</span>Survived)) <span class="sc">+</span></span>
+<span id="cb15-5"><a href="titanic---studies-on-classification.html#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> </span>
+<span id="cb15-6"><a href="titanic---studies-on-classification.html#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">x=</span><span class="st">&quot;Survival Status&quot;</span>, <span class="at">y=</span><span class="st">&quot;Passenger Count&quot;</span>, <span class="at">title =</span> <span class="st">&quot;Distribution of passenger status&quot;</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-67-1.png" width="672" />
+We see that roughly 3 of 5 died in the Titanic disaster. We now turn our attention to finding reasonable correlations in the data. A place to start would be a correlation diagram. We can choose to look only at the numerical features in the data set:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="titanic---studies-on-classification.html#cb16-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> </span>
+<span id="cb16-2"><a href="titanic---studies-on-classification.html#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">which</span>(<span class="fu">sapply</span>(.,is.numeric))) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-3"><a href="titanic---studies-on-classification.html#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">correlate</span>(<span class="at">diagonal =</span> <span class="dv">1</span>,<span class="at">quiet=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-4"><a href="titanic---studies-on-classification.html#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rplot</span>()</span></code></pre></div>
+<pre><code>## Don&#39;t know how to automatically pick scale for object of type noquote. Defaulting to continuous.</code></pre>
+<p><img src="_main_files/figure-html/unnamed-chunk-68-1.png" width="672" />
+Alternatively we can one hot encode the relevant categorical variables and include them as well:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="titanic---studies-on-classification.html#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">recipe</span>(Survived <span class="sc">~</span> .,<span class="at">data=</span>titanic_train) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-2"><a href="titanic---studies-on-classification.html#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(PassengerId,Name,Ticket,Cabin,<span class="at">new_role=</span><span class="st">&quot;ID&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-3"><a href="titanic---studies-on-classification.html#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>(),<span class="at">one_hot=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-4"><a href="titanic---studies-on-classification.html#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">prep</span>(<span class="at">retain=</span><span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-5"><a href="titanic---studies-on-classification.html#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">juice</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb18-6"><a href="titanic---studies-on-classification.html#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">which</span>(<span class="fu">sapply</span>(.,is.numeric))) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-7"><a href="titanic---studies-on-classification.html#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">correlate</span>(<span class="at">diagonal =</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-8"><a href="titanic---studies-on-classification.html#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rplot</span>() <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>)</span></code></pre></div>
+<pre><code>## 
+## Correlation method: &#39;pearson&#39;
+## Missing treated using: &#39;pairwise.complete.obs&#39;</code></pre>
+<pre><code>## Don&#39;t know how to automatically pick scale for object of type noquote. Defaulting to continuous.</code></pre>
+<p><img src="_main_files/figure-html/unnamed-chunk-69-1.png" width="672" />
+From the correlation plot we see that Fare and PClass are moderately correlated. This can become an issue later on in the modelling process. We also see that Survived primarily is correlated to Sex and PClass. Lets investigate these further.</p>
+<p>First let us have a look at how survived is related to sex:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="titanic---studies-on-classification.html#cb21-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> </span>
+<span id="cb21-2"><a href="titanic---studies-on-classification.html#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">as_factor</span>(Survived)) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-3"><a href="titanic---studies-on-classification.html#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">fct_recode</span>(Survived, <span class="st">&quot;Died&quot;</span><span class="ot">=</span><span class="st">&quot;0&quot;</span>,<span class="st">&quot;Survived&quot;</span><span class="ot">=</span><span class="st">&quot;1&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb21-4"><a href="titanic---studies-on-classification.html#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Sex, <span class="at">fill=</span>Survived)) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="titanic---studies-on-classification.html#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">position=</span><span class="st">&quot;dodge&quot;</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-70-1.png" width="672" />
+As expected the two variables are correlated. A higher proportion of women survived compared to men.</p>
+<p>Next let us have a look at the Pclass vs Survived:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="titanic---studies-on-classification.html#cb22-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> </span>
+<span id="cb22-2"><a href="titanic---studies-on-classification.html#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">as_factor</span>(Survived)) <span class="sc">%&gt;%</span></span>
+<span id="cb22-3"><a href="titanic---studies-on-classification.html#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Pclass =</span> <span class="fu">as_factor</span>(Pclass)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-4"><a href="titanic---studies-on-classification.html#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">fct_recode</span>(Survived, <span class="st">&quot;Died&quot;</span><span class="ot">=</span><span class="st">&quot;0&quot;</span>,<span class="st">&quot;Survived&quot;</span><span class="ot">=</span><span class="st">&quot;1&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-5"><a href="titanic---studies-on-classification.html#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Pclass, <span class="at">fill=</span>Survived)) <span class="sc">+</span></span>
+<span id="cb22-6"><a href="titanic---studies-on-classification.html#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_bar</span>(<span class="at">position=</span><span class="st">&quot;dodge&quot;</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-71-1.png" width="672" />
+From this we see that a 1st class passenger was more likely to survive than a 3rd class passenger.</p>
+<p>Finally we can have a look at the fare distributions of the passengers:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="titanic---studies-on-classification.html#cb23-1" aria-hidden="true" tabindex="-1"></a>titanic_train <span class="sc">%&gt;%</span> </span>
+<span id="cb23-2"><a href="titanic---studies-on-classification.html#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">as_factor</span>(Survived)) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-3"><a href="titanic---studies-on-classification.html#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">fct_recode</span>(Survived, <span class="st">&quot;Died&quot;</span><span class="ot">=</span><span class="st">&quot;0&quot;</span>,<span class="st">&quot;Survived&quot;</span><span class="ot">=</span><span class="st">&quot;1&quot;</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb23-4"><a href="titanic---studies-on-classification.html#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Fare,<span class="at">color=</span>Survived)) <span class="sc">+</span></span>
+<span id="cb23-5"><a href="titanic---studies-on-classification.html#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stat_density</span>(<span class="at">geom=</span><span class="st">&quot;line&quot;</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-72-1.png" width="672" />
+We see that among those that died, there is a higher proportion of passengers with a low fare. This is easily explained from the higher proportion of 3rd class passengers among those who died.</p>
+</div>
+<div id="modelling" class="section level2" number="3.3">
+<h2><span class="header-section-number">3.3</span> Modelling</h2>
+<p>In this section we will develop several models to predict if a passenger will survive or not. Different model classes have different requirements to feature engineering, so we will develop several preprocessing recipes and choose the ones that performs best with respect to accuracy and ROC.</p>
+<p>Since some models are able to deal well with NAs we reload the original dataset with missing values for modelling purposes:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="titanic---studies-on-classification.html#cb24-1" aria-hidden="true" tabindex="-1"></a>titanic_train_model <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;./titanic_train.csv&quot;</span>)</span></code></pre></div>
+<pre><code>## Rows: 891 Columns: 12
+## ── Column specification ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (5): Name, Sex, Ticket, Cabin, Embarked
+## dbl (7): PassengerId, Survived, Pclass, Age, SibSp, Parch, Fare
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p>For the classification models we need the outcome to be a factor variable:</p>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="titanic---studies-on-classification.html#cb26-1" aria-hidden="true" tabindex="-1"></a>titanic_train_model <span class="ot">&lt;-</span> titanic_train_model <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">Survived =</span> <span class="fu">as_factor</span>(Survived))</span></code></pre></div>
+<p>Let us have a look at the skewness of the different numerical variables to decide upon which kind of imputation to choose:</p>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="titanic---studies-on-classification.html#cb27-1" aria-hidden="true" tabindex="-1"></a>titanic_train_model <span class="sc">%&gt;%</span> </span>
+<span id="cb27-2"><a href="titanic---studies-on-classification.html#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">which</span>(<span class="fu">sapply</span>(.,is.numeric)),<span class="sc">-</span>PassengerId) <span class="sc">%&gt;%</span></span>
+<span id="cb27-3"><a href="titanic---studies-on-classification.html#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise_all</span>(<span class="sc">~</span> moments<span class="sc">::</span><span class="fu">skewness</span>(.))</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 5
+##   Pclass   Age SibSp Parch  Fare
+##    &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 -0.629    NA  3.69  2.74  4.78</code></pre>
+<p>We see that all variables are skewed, so we impute them using the median.</p>
+<p>All models use the same formula and need to have the same columns as ID columns, so we begin by making a base recipe for the preprocessing:</p>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="titanic---studies-on-classification.html#cb29-1" aria-hidden="true" tabindex="-1"></a>titanic_baserec <span class="ot">&lt;-</span> </span>
+<span id="cb29-2"><a href="titanic---studies-on-classification.html#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">recipe</span>(Survived <span class="sc">~</span> ., <span class="at">data=</span>titanic_train_model) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-3"><a href="titanic---studies-on-classification.html#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_rm</span>(Ticket,Cabin,Name) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-4"><a href="titanic---studies-on-classification.html#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(PassengerId,<span class="at">new_role=</span><span class="st">&quot;ID&quot;</span>)</span></code></pre></div>
+<p>To tune the different models we will use 10-fold cross validation. For this purpose we define the folds:</p>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="titanic---studies-on-classification.html#cb30-1" aria-hidden="true" tabindex="-1"></a>titanic_folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(titanic_train_model,<span class="at">strata =</span> Survived)</span></code></pre></div>
+<div id="logistic-regression-1" class="section level3" number="3.3.1">
+<h3><span class="header-section-number">3.3.1</span> Logistic Regression</h3>
+<p>Logistic regression relies on the features being independent. Moreover it doesn’t do
+well with missing values and factors with small frequencies. This gives us the following
+recipe for logistic regression:</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="titanic---studies-on-classification.html#cb31-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_rec <span class="ot">&lt;-</span> </span>
+<span id="cb31-2"><a href="titanic---studies-on-classification.html#cb31-2" aria-hidden="true" tabindex="-1"></a>  titanic_baserec <span class="sc">%&gt;%</span> </span>
+<span id="cb31-3"><a href="titanic---studies-on-classification.html#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_impute_median</span>(<span class="fu">all_numeric_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb31-4"><a href="titanic---studies-on-classification.html#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_impute_mode</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb31-5"><a href="titanic---studies-on-classification.html#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb31-6"><a href="titanic---studies-on-classification.html#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>())</span></code></pre></div>
+<p>For decorrelation we can choose between PCA and removing correlated variables. Additionally we can decide to normalize the numeric predictors or not. If we do, we use Yeo-Johnson transformation. This gives us the following final recipes for logistic regression:</p>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="titanic---studies-on-classification.html#cb32-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_pca_nonorm <span class="ot">&lt;-</span></span>
+<span id="cb32-2"><a href="titanic---studies-on-classification.html#cb32-2" aria-hidden="true" tabindex="-1"></a>  titanic_logit_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb32-3"><a href="titanic---studies-on-classification.html#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_pca</span>(<span class="fu">all_predictors</span>())</span>
+<span id="cb32-4"><a href="titanic---studies-on-classification.html#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-5"><a href="titanic---studies-on-classification.html#cb32-5" aria-hidden="true" tabindex="-1"></a>titanic_logit_decor_nonorm <span class="ot">&lt;-</span></span>
+<span id="cb32-6"><a href="titanic---studies-on-classification.html#cb32-6" aria-hidden="true" tabindex="-1"></a>  titanic_logit_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb32-7"><a href="titanic---studies-on-classification.html#cb32-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_corr</span>(<span class="fu">all_predictors</span>())</span>
+<span id="cb32-8"><a href="titanic---studies-on-classification.html#cb32-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-9"><a href="titanic---studies-on-classification.html#cb32-9" aria-hidden="true" tabindex="-1"></a>titanic_logit_pca_norm <span class="ot">&lt;-</span></span>
+<span id="cb32-10"><a href="titanic---studies-on-classification.html#cb32-10" aria-hidden="true" tabindex="-1"></a>  titanic_logit_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb32-11"><a href="titanic---studies-on-classification.html#cb32-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_pca</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb32-12"><a href="titanic---studies-on-classification.html#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_YeoJohnson</span>(<span class="fu">all_numeric_predictors</span>())</span>
+<span id="cb32-13"><a href="titanic---studies-on-classification.html#cb32-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-14"><a href="titanic---studies-on-classification.html#cb32-14" aria-hidden="true" tabindex="-1"></a>titanic_logit_decor_norm <span class="ot">&lt;-</span></span>
+<span id="cb32-15"><a href="titanic---studies-on-classification.html#cb32-15" aria-hidden="true" tabindex="-1"></a>  titanic_logit_rec <span class="sc">%&gt;%</span> </span>
+<span id="cb32-16"><a href="titanic---studies-on-classification.html#cb32-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_corr</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb32-17"><a href="titanic---studies-on-classification.html#cb32-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_YeoJohnson</span>(<span class="fu">all_numeric_predictors</span>())</span></code></pre></div>
+<p>For models we can use a regularized or un-regularized logistic regression model. For the regularized model we will using 10-fold cross validation tuning to choose the best regularization parameters.</p>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="titanic---studies-on-classification.html#cb33-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_mod <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb33-2"><a href="titanic---studies-on-classification.html#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-3"><a href="titanic---studies-on-classification.html#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">&quot;glm&quot;</span>)</span>
+<span id="cb33-4"><a href="titanic---studies-on-classification.html#cb33-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-5"><a href="titanic---studies-on-classification.html#cb33-5" aria-hidden="true" tabindex="-1"></a>titanic_reg_logit_mod <span class="ot">&lt;-</span> <span class="fu">logistic_reg</span>(<span class="at">penalty=</span><span class="fu">tune</span>(),<span class="at">mixture=</span><span class="fu">tune</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-6"><a href="titanic---studies-on-classification.html#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">&quot;classification&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb33-7"><a href="titanic---studies-on-classification.html#cb33-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">&quot;glmnet&quot;</span>)</span></code></pre></div>
+<p>Now we can define the workflow set for the different models and recipes:</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="titanic---studies-on-classification.html#cb34-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_wfs <span class="ot">&lt;-</span> </span>
+<span id="cb34-2"><a href="titanic---studies-on-classification.html#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow_set</span>(</span>
+<span id="cb34-3"><a href="titanic---studies-on-classification.html#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">preproc =</span> <span class="fu">list</span>(<span class="at">DeCorNoNorm =</span> titanic_logit_decor_nonorm, </span>
+<span id="cb34-4"><a href="titanic---studies-on-classification.html#cb34-4" aria-hidden="true" tabindex="-1"></a>                   <span class="at">DeCorNorm =</span> titanic_logit_decor_norm,</span>
+<span id="cb34-5"><a href="titanic---studies-on-classification.html#cb34-5" aria-hidden="true" tabindex="-1"></a>                   <span class="at">PCANoNorm =</span> titanic_logit_pca_nonorm,</span>
+<span id="cb34-6"><a href="titanic---studies-on-classification.html#cb34-6" aria-hidden="true" tabindex="-1"></a>                   <span class="at">PCANorm =</span> titanic_logit_pca_norm),</span>
+<span id="cb34-7"><a href="titanic---studies-on-classification.html#cb34-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">models =</span> <span class="fu">list</span>(<span class="at">regularized =</span> titanic_reg_logit_mod,</span>
+<span id="cb34-8"><a href="titanic---studies-on-classification.html#cb34-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">unregularized =</span>titanic_logit_mod)</span>
+<span id="cb34-9"><a href="titanic---studies-on-classification.html#cb34-9" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<p>For tuning the regularized model we define the following tuning grid:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="titanic---studies-on-classification.html#cb35-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_grid <span class="ot">&lt;-</span> <span class="fu">grid_regular</span>(<span class="fu">penalty</span>(),<span class="fu">mixture</span>(),<span class="at">levels=</span><span class="fu">c</span>(<span class="dv">5</span>,<span class="dv">2</span>)) </span></code></pre></div>
+<p>We are now ready to fit at tune the various models:</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="titanic---studies-on-classification.html#cb36-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_control <span class="ot">&lt;-</span> <span class="fu">control_grid</span>(</span>
+<span id="cb36-2"><a href="titanic---studies-on-classification.html#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">save_pred =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb36-3"><a href="titanic---studies-on-classification.html#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">parallel_over =</span> <span class="st">&quot;everything&quot;</span>,</span>
+<span id="cb36-4"><a href="titanic---studies-on-classification.html#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">save_workflow =</span> <span class="cn">TRUE</span></span>
+<span id="cb36-5"><a href="titanic---studies-on-classification.html#cb36-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-6"><a href="titanic---studies-on-classification.html#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="titanic---studies-on-classification.html#cb36-7" aria-hidden="true" tabindex="-1"></a>titanic_logit_results <span class="ot">&lt;-</span> </span>
+<span id="cb36-8"><a href="titanic---studies-on-classification.html#cb36-8" aria-hidden="true" tabindex="-1"></a>  titanic_logit_wfs <span class="sc">%&gt;%</span> </span>
+<span id="cb36-9"><a href="titanic---studies-on-classification.html#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">workflow_map</span>(</span>
+<span id="cb36-10"><a href="titanic---studies-on-classification.html#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">1234</span>,</span>
+<span id="cb36-11"><a href="titanic---studies-on-classification.html#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">resamples =</span> titanic_folds,</span>
+<span id="cb36-12"><a href="titanic---studies-on-classification.html#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> titanic_logit_grid,</span>
+<span id="cb36-13"><a href="titanic---studies-on-classification.html#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> titanic_logit_control, </span>
+<span id="cb36-14"><a href="titanic---studies-on-classification.html#cb36-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">metrics =</span> <span class="fu">metric_set</span>(accuracy,roc_auc),</span>
+<span id="cb36-15"><a href="titanic---studies-on-classification.html#cb36-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">verbose =</span> <span class="cn">TRUE</span></span>
+<span id="cb36-16"><a href="titanic---studies-on-classification.html#cb36-16" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div>
+<pre><code>## i 1 of 8 tuning:     DeCorNoNorm_regularized</code></pre>
+<pre><code>## ✓ 1 of 8 tuning:     DeCorNoNorm_regularized (32.2s)</code></pre>
+<pre><code>## i    No tuning parameters. `fit_resamples()` will be attempted</code></pre>
+<pre><code>## i 2 of 8 resampling: DeCorNoNorm_unregularized</code></pre>
+<pre><code>## ✓ 2 of 8 resampling: DeCorNoNorm_unregularized (12.1s)</code></pre>
+<pre><code>## i 3 of 8 tuning:     DeCorNorm_regularized</code></pre>
+<pre><code>## ✓ 3 of 8 tuning:     DeCorNorm_regularized (32.6s)</code></pre>
+<pre><code>## i    No tuning parameters. `fit_resamples()` will be attempted</code></pre>
+<pre><code>## i 4 of 8 resampling: DeCorNorm_unregularized</code></pre>
+<pre><code>## ✓ 4 of 8 resampling: DeCorNorm_unregularized (12.8s)</code></pre>
+<pre><code>## i 5 of 8 tuning:     PCANoNorm_regularized</code></pre>
+<pre><code>## ✓ 5 of 8 tuning:     PCANoNorm_regularized (31.7s)</code></pre>
+<pre><code>## i    No tuning parameters. `fit_resamples()` will be attempted</code></pre>
+<pre><code>## i 6 of 8 resampling: PCANoNorm_unregularized</code></pre>
+<pre><code>## ✓ 6 of 8 resampling: PCANoNorm_unregularized (11.7s)</code></pre>
+<pre><code>## i 7 of 8 tuning:     PCANorm_regularized</code></pre>
+<pre><code>## ✓ 7 of 8 tuning:     PCANorm_regularized (31.5s)</code></pre>
+<pre><code>## i    No tuning parameters. `fit_resamples()` will be attempted</code></pre>
+<pre><code>## i 8 of 8 resampling: PCANorm_unregularized</code></pre>
+<pre><code>## ✓ 8 of 8 resampling: PCANorm_unregularized (12.1s)</code></pre>
+<p>Let us have a plot of the fitted models and workflows:</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="titanic---studies-on-classification.html#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">autoplot</span>(titanic_logit_results,<span class="at">rank_metric=</span><span class="st">&quot;accuracy&quot;</span>,<span class="at">select_best =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="_main_files/figure-html/unnamed-chunk-84-1.png" width="672" />
+We see that half of the combinations perform significantly better than the others. Lets have a look at the results:</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="titanic---studies-on-classification.html#cb58-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_results <span class="sc">%&gt;%</span> </span>
+<span id="cb58-2"><a href="titanic---studies-on-classification.html#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rank_results</span>(<span class="at">select_best =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb58-3"><a href="titanic---studies-on-classification.html#cb58-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(.metric <span class="sc">==</span> <span class="st">&quot;accuracy&quot;</span>)</span></code></pre></div>
+<pre><code>## # A tibble: 8 × 9
+##   wflow_id                  .config               .metric   mean std_err     n preprocessor model         rank
+##   &lt;chr&gt;                     &lt;chr&gt;                 &lt;chr&gt;    &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;int&gt;
+## 1 DeCorNoNorm_regularized   Preprocessor1_Model01 accuracy 0.796  0.0204    10 recipe       logistic_reg     1
+## 2 DeCorNorm_regularized     Preprocessor1_Model06 accuracy 0.794  0.0217    10 recipe       logistic_reg     2
+## 3 DeCorNorm_unregularized   Preprocessor1_Model1  accuracy 0.794  0.0215    10 recipe       logistic_reg     3
+## 4 DeCorNoNorm_unregularized Preprocessor1_Model1  accuracy 0.794  0.0213    10 recipe       logistic_reg     4
+## 5 PCANoNorm_unregularized   Preprocessor1_Model1  accuracy 0.730  0.0245    10 recipe       logistic_reg     5
+## 6 PCANoNorm_regularized     Preprocessor1_Model06 accuracy 0.727  0.0235    10 recipe       logistic_reg     6
+## 7 PCANorm_regularized       Preprocessor1_Model09 accuracy 0.723  0.0263    10 recipe       logistic_reg     7
+## 8 PCANorm_unregularized     Preprocessor1_Model1  accuracy 0.713  0.0217    10 recipe       logistic_reg     8</code></pre>
+<p>We see that using PCA to decorrelate features is performing worse than simple removal of correlated variables.</p>
+<p>Let us find the best tuning parameters:</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="titanic---studies-on-classification.html#cb60-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_best_parm <span class="ot">&lt;-</span></span>
+<span id="cb60-2"><a href="titanic---studies-on-classification.html#cb60-2" aria-hidden="true" tabindex="-1"></a>   titanic_logit_results <span class="sc">%&gt;%</span> </span>
+<span id="cb60-3"><a href="titanic---studies-on-classification.html#cb60-3" aria-hidden="true" tabindex="-1"></a>   <span class="fu">extract_workflow_set_result</span>(<span class="st">&quot;DeCorNoNorm_regularized&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb60-4"><a href="titanic---studies-on-classification.html#cb60-4" aria-hidden="true" tabindex="-1"></a>   <span class="fu">select_best</span>(<span class="at">metric=</span><span class="st">&quot;accuracy&quot;</span>)</span>
+<span id="cb60-5"><a href="titanic---studies-on-classification.html#cb60-5" aria-hidden="true" tabindex="-1"></a>titanic_logit_best_parm</span></code></pre></div>
+<pre><code>## # A tibble: 1 × 3
+##        penalty mixture .config              
+##          &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;                
+## 1 0.0000000001       0 Preprocessor1_Model01</code></pre>
+<p>So the best option is Lasso regression with a slight penalty of 1.0e-10.</p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="titanic---studies-on-classification.html#cb62-1" aria-hidden="true" tabindex="-1"></a>titanic_logit_best_wf <span class="ot">&lt;-</span> titanic_logit_results <span class="sc">%&gt;%</span> </span>
+<span id="cb62-2"><a href="titanic---studies-on-classification.html#cb62-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_workflow</span>(<span class="st">&quot;DeCorNoNorm_regularized&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb62-3"><a href="titanic---studies-on-classification.html#cb62-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(titanic_logit_best_parm)</span>
+<span id="cb62-4"><a href="titanic---studies-on-classification.html#cb62-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-5"><a href="titanic---studies-on-classification.html#cb62-5" aria-hidden="true" tabindex="-1"></a>titanic_logit_best_mod <span class="ot">&lt;-</span> <span class="fu">fit</span>(titanic_logit_best_wf,titanic_train_model)</span>
+<span id="cb62-6"><a href="titanic---studies-on-classification.html#cb62-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb62-7"><a href="titanic---studies-on-classification.html#cb62-7" aria-hidden="true" tabindex="-1"></a>titanic_logit_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(titanic_logit_best_mod,<span class="at">new_data=</span>titanic_test)</span></code></pre></div>
+<p>We are now ready to write the predictions to a file and upload to Kaggle:</p>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="titanic---studies-on-classification.html#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cbind</span>(<span class="at">PassengerId =</span> titanic_test<span class="sc">$</span>PassengerId,titanic_logit_pred) <span class="sc">%&gt;%</span> </span>
+<span id="cb63-2"><a href="titanic---studies-on-classification.html#cb63-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Survived =</span> .pred_class) <span class="sc">%&gt;%</span> </span>
+<span id="cb63-3"><a href="titanic---studies-on-classification.html#cb63-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_csv</span>(<span class="st">&quot;./titanic_logit_pred.csv&quot;</span>)</span></code></pre></div>
+<p>The Kaggle score (which established the baseline for this chapter), is 0.76315. The accuracy is as expected slightly lower than for the training data, but a very respectable result for a linear model.</p>
+<p>Lets us collect the results in a Tibble, which we can use at the end of the chapter:</p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="titanic---studies-on-classification.html#cb64-1" aria-hidden="true" tabindex="-1"></a>results_table <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">Model =</span> <span class="fu">c</span>(<span class="st">&quot;L2-penalized Logistic Regression&quot;</span>), <span class="at">Score =</span> <span class="st">&quot;0.76315&quot;</span>)</span>
+<span id="cb64-2"><a href="titanic---studies-on-classification.html#cb64-2" aria-hidden="true" tabindex="-1"></a>results_table <span class="sc">%&gt;%</span> <span class="fu">kbl</span>() <span class="sc">%&gt;%</span> <span class="fu">kable_material</span>(<span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>,<span class="st">&quot;hover&quot;</span>))</span></code></pre></div>
+<table class=" lightable-material lightable-striped lightable-hover" style="font-family: &quot;Source Sans Pro&quot;, helvetica, sans-serif; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Model
+</th>
+<th style="text-align:left;">
+Score
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+L2-penalized Logistic Regression
+</td>
+<td style="text-align:left;">
+0.76315
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="lda" class="section level3" number="3.3.2">
+<h3><span class="header-section-number">3.3.2</span> LDA</h3>
+<p>The linear discriminant classifier (LDA-C) is mostly included for reference. In general it is not expected to perform as well as the penalized logistic regression.</p>
+<p>Pre-processing for the LDA is almost the same as for logistic regression. We need to remove zero variance variables as well as ID variables. Moreover we need to one-hot
+encode factors and and de-corrolate features. Finally LDA might benefit from normalization of variables, in which case we use Yeo Johnson transformation.</p>
+<p>This leaves us with the following preprocessing recipes:</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="titanic---studies-on-classification.html#cb65-1" aria-hidden="true" tabindex="-1"></a>titanic_lda_rec_nonorm <span class="ot">&lt;-</span> </span>
+<span id="cb65-2"><a href="titanic---studies-on-classification.html#cb65-2" aria-hidden="true" tabindex="-1"></a>  titanic_baserec <span class="sc">%&gt;%</span> </span>
+<span id="cb65-3"><a href="titanic---studies-on-classification.html#cb65-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_impute_median</span>(<span class="fu">all_numeric_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-4"><a href="titanic---studies-on-classification.html#cb65-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_impute_mode</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-5"><a href="titanic---studies-on-classification.html#cb65-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-6"><a href="titanic---studies-on-classification.html#cb65-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>())</span>
+<span id="cb65-7"><a href="titanic---studies-on-classification.html#cb65-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb65-8"><a href="titanic---studies-on-classification.html#cb65-8" aria-hidden="true" tabindex="-1"></a>titanic_lda_rec_norm <span class="ot">&lt;-</span> </span>
+<span id="cb65-9"><a href="titanic---studies-on-classification.html#cb65-9" aria-hidden="true" tabindex="-1"></a>  titanic_baserec <span class="sc">%&gt;%</span> </span>
+<span id="cb65-10"><a href="titanic---studies-on-classification.html#cb65-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_impute_median</span>(<span class="fu">all_numeric_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-11"><a href="titanic---studies-on-classification.html#cb65-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_impute_mode</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-12"><a href="titanic---studies-on-classification.html#cb65-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_dummy</span>(<span class="fu">all_nominal_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-13"><a href="titanic---studies-on-classification.html#cb65-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_zv</span>(<span class="fu">all_predictors</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb65-14"><a href="titanic---studies-on-classification.html#cb65-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">step_YeoJohnson</span>(<span class="fu">all_numeric_predictors</span>())</span></code></pre></div>
+</div>
+<div id="knn" class="section level3" number="3.3.3">
+<h3><span class="header-section-number">3.3.3</span> kNN</h3>
+</div>
+<div id="svm" class="section level3" number="3.3.4">
+<h3><span class="header-section-number">3.3.4</span> SVM</h3>
+</div>
+<div id="xgboost" class="section level3" number="3.3.5">
+<h3><span class="header-section-number">3.3.5</span> XGBoost</h3>
+</div>
+<div id="lightgbm." class="section level3" number="3.3.6">
+<h3><span class="header-section-number">3.3.6</span> lightGBM.</h3>
 
+</div>
 </div>
 </div>
             </section>

@@ -34,6 +34,10 @@ require(kknn)
 require(bestNormalize)
 require(finetune)
 require(moments)
+require(ggcorrplot)
+require(corrr)
+require(workflowsets)
+require(kableExtra)
 ```
 
 # Introduction

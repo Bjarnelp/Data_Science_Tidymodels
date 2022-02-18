@@ -19,3 +19,10 @@ petals-to-the-metal---image-classification-using-tensorflow
 cover-image-path-to-the-social-sharing-image-like-imagescover.jpg
 data-collection-and-cleaning
 eda
+modelling
+logistic-regression-1
+lda
+knn
+svm
+xgboost
+lightgbm.
