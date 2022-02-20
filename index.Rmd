@@ -38,6 +38,7 @@ require(ggcorrplot)
 require(corrr)
 require(workflowsets)
 require(kableExtra)
+require(treesnip)
 ```
 
 # Introduction
