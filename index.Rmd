@@ -48,7 +48,17 @@ require(lightgbm)
 require(lme4)
 >>>>>>> 3f92890e31e768150b7c6323219f7ef6b1d4d696
 require(parallel)
+require(doParallel)
 ```
+
+Finally let us set up for parallel processing:
+```{r}
+all_cores <- parallel::detectCores(logical = FALSE)
+
+cl <- makePSOCKcluster(all_cores)
+registerDoParallel(cl)
+```
+
 
 # Introduction
 
