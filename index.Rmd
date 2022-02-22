@@ -41,12 +41,9 @@ require(kableExtra)
 require(treesnip)
 require(ranger)
 require(baguette)
-<<<<<<< HEAD
 require(xgboost)
 require(lightgbm)
-=======
 require(parallel)
->>>>>>> 48359d25d9177782069781236a1ce9eb5538bb3d
 ```
 
 # Introduction
