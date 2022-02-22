@@ -41,6 +41,8 @@ require(kableExtra)
 require(treesnip)
 require(ranger)
 require(baguette)
+require(xgboost)
+require(lightgbm)
 ```
 
 # Introduction

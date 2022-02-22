@@ -722,26 +722,26 @@ titanic_bagged_results <-
 Let us have a plot of the fitted models and workflows:
 ```{r}
 autoplot(titanic_bagged_results,rank_metric="accuracy",select_best = TRUE) +
-  geom_text(aes(y=0.45,label= wflow_id), angle=90) +
-  lims(y=c(0.2,0.9)) +
+  geom_text(aes(y=0.65,label= wflow_id), angle=90) +
+  lims(y=c(0.4,0.9)) +
   theme(legend.position = "none")
 ```
-Quite interestingly we see almost similar accuracy from the two workflows, but ROC is higher for the recipe without imputation. Thus, we will continue with this workflow.
+We see that the Random Forest performs slightly better, when it comes to accuracy, than the bagged C5.0, though ROC seems almost similar. Moreover, when can see that the bagged C5.0 benefits slightly from imputation of missing values.
 
 Let us find the best tuning parameters with respect to accuracy:
 ```{r}
 titanic_bagged_best_parm <-
    titanic_bagged_results %>% 
-   extract_workflow_set_result("") %>% 
-   select_best(metric="")
+   extract_workflow_set_result("impute_rf") %>% 
+   select_best(metric="accuracy")
 titanic_bagged_best_parm
 ```
-So, the best tree has minimal node size 6.
+We see that the best Random Forest workflow uses 3 randomly sampled predictors in each tree and minimum 2 data points in each splitting note.
 
 We can now define best workflow and fit to the training data
 ```{r}
 titanic_bagged_best_wf <- titanic_bagged_results %>% 
-  extract_workflow("") %>% 
+  extract_workflow("impute_rf") %>% 
   finalize_workflow(titanic_bagged_best_parm)
 
 titanic_bagged_best_mod <- fit(titanic_bagged_best_wf,titanic_train_model)
@@ -755,17 +755,96 @@ cbind(PassengerId = titanic_test$PassengerId,titanic_bagged_pred) %>%
   write_csv("./titanic_bagged_pred.csv")
 ```
 
-The Kaggle score is 0.78468, which is quite interesting, since simple classification trees are usually weak learnes. This will make the next two sections, where we look at bagging and boosting trees quite interesting.
+The Kaggle score is 0.76794, which remarkably is worse than for the single C5.0 tree. Lets try submitting the best bagged C5.0 results as well:
+```{r}
+titanic_bagged_c50_best_parm <-
+   titanic_bagged_results %>% 
+   extract_workflow_set_result("impute_bag_c50") %>% 
+   select_best(metric="roc_auc")
+titanic_bagged_c50_best_parm
+
+titanic_bagged_c50_best_wf <- titanic_bagged_results %>% 
+  extract_workflow("impute_bag_c50") %>% 
+  finalize_workflow(titanic_bagged_c50_best_parm)
+
+titanic_bagged_c50_best_mod <- fit(titanic_bagged_c50_best_wf,titanic_train_model)
+
+titanic_bagged_c50_pred <- predict(titanic_bagged_c50_best_mod,new_data=titanic_test)
+
+cbind(PassengerId = titanic_test$PassengerId,titanic_bagged_c50_pred) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_bagged_c50_pred.csv")
+```
+The Kaggle score for the bagged C5.0 is 0.78708, and thus it outperforms the random forest. One might ask if the random forest actually is overfit, even though they should have a tendency to do so.
 
 Lets us add the results to our table
 ```{r}
-results_table <- results_table %>% add_row(Model = "C5.0 classification tree with minimum leaf size 6", Score="0.78468")
+results_table <- results_table %>% add_row(Model = "Random Forest with mtry=3 and min_n = 2", Score="0.76794") %>% add_row(Model = "Bagged C5.0 minimum leaf size 7", Score="0.78708")
 results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
 
 ### Boosted tree models: XGBoost and lightGBM.
 
-In this final subsection of models we will have a look at a different class of ensemble methods. Where bagged trees rely on bootstrapping the data to build a host of trees, boosting relies on building trees, that capture the features that have not yet been explained by the previous models. Thus, boosting is an example of a slow learner. And just as in the real world, slow learning often proves to be the most efficient. We will here have a look at two algorithms. The first is XGBoost, well known for being 
+In this final subsection of models we will have a look at a different class of ensemble methods. Where bagged trees rely on bootstrapping the data to build a host of trees, boosting relies on building trees, that capture the features that have not yet been explained by the previous models. Thus, boosting is an example of a slow learner. And just as in the real world, slow learning often proves to be the most efficient. We will here have a look at two algorithms. The first is XGBoost, well known for being one of the most efficient and successful classification algorithms. The downside is, that the algorithm has a wide range of tunable parameters, and thus it can be costly to fit to data. Thus, we will also take a look at lightGBM, which can be up to 7 times faster to fit and tune than XGBoost, but has a small risk of overfitting.
+
+Reading the documentation for the engines, XGBoost requires factors to be dummy encoded and missing values to be imputed. This gives us the following recipe for the boosting models:
+```{r}
+titanic_boost_rec <- titanic_baserec %>% 
+  step_dummy(all_nominal_predictors()) %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors())
+```
+
+Now we can define the models:
+```{r}
+titanic_xgb_mod <- boost_tree(trees=tune(),min_n=tune(),tree_depth=tune(),
+                              learn_rate = tune(), loss_reduction = tune()) %>% 
+                     set_mode("classification") %>% 
+                     set_engine("xgboost")
+
+titanic_lgb_mod <- boost_tree(trees=tune(),min_n=tune(),tree_depth=tune(),
+                              learn_rate = tune(), loss_reduction = tune()) %>% 
+                     set_mode("classification") %>% 
+                     set_engine("lightgbm")
+```
+
+The associated grid is
+```{r}
+titanic_boost_grid <- grid_regular(trees(),min_n(),tree_depth(),
+                                   learn_rate(),loss_reduction(),levels=5) 
+```
+
+Now we can define the workflow sets:
+```{r}
+titanic_boost_wfs <- 
+  workflow_set(
+    preproc = list(rec =  titanic_boost_rec),
+    models = list(xgb= titanic_xgb_mod,
+                  lgb= titanic_lgb_mod)
+  )
+```
+
+With a grid of size $5^5=15625$ and relatively expensive models to fit, we will use tune_racing_anova to speed up the process. Tune_racing_anova is a method where is set of parameters is initially screened and obviously inefficient sets are discarded. Another option could have been to use a spacefilling grid instead of a regular grid.
+
+```{r, warning=FALSE}
+titanic_boost_control <- control_grid(
+  save_pred = TRUE,
+  parallel_over = "everything",
+  save_workflow = TRUE
+)
+
+titanic_boost_results <- 
+  titanic_boost_wfs %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = titanic_folds,
+    fn = "tune_race_anova",
+    grid = titanic_boost_grid,
+    control = titanic_boost_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = TRUE
+  )
+```
 
 ## Summary
 
