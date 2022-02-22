@@ -790,9 +790,9 @@ In this final subsection of models we will have a look at a different class of e
 Reading the documentation for the engines, XGBoost requires factors to be dummy encoded and missing values to be imputed. This gives us the following recipe for the boosting models:
 ```{r}
 titanic_boost_rec <- titanic_baserec %>% 
-  step_dummy(all_nominal_predictors()) %>% 
   step_impute_median(all_numeric_predictors()) %>% 
-  step_impute_mode(all_nominal_predictors())
+  step_impute_mode(all_nominal_predictors()) %>% 
+  step_dummy(all_nominal_predictors())
 ```
 
 Now we can define the models:
@@ -824,7 +824,7 @@ titanic_boost_wfs <-
   )
 ```
 
-With a grid of size $5^5=15625$ and relatively expensive models to fit, we will use tune_racing_anova to speed up the process. Tune_racing_anova is a method where is set of parameters is initially screened and obviously inefficient sets are discarded. Another option could have been to use a spacefilling grid instead of a regular grid.
+With a grid of size $5^4=625$ and relatively expensive models to fit, we will use tune_racing_anova to speed up the process. Tune_racing_anova is a method where is set of parameters is initially screened and obviously inefficient sets are discarded. Another option could have been to use a spacefilling grid instead of a regular grid.
 
 ```{r, warning=FALSE}
 titanic_boost_control <- control_grid(
@@ -838,7 +838,6 @@ titanic_boost_results <-
   workflow_map(
     seed = 1234,
     resamples = titanic_folds,
-    fn = "tune_race_anova",
     grid = titanic_boost_grid,
     control = titanic_boost_control, 
     metrics = metric_set(accuracy,roc_auc),

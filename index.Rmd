@@ -43,6 +43,10 @@ require(ranger)
 require(baguette)
 require(xgboost)
 require(lightgbm)
+<<<<<<< HEAD
+=======
+require(lme4)
+>>>>>>> 3f92890e31e768150b7c6323219f7ef6b1d4d696
 require(parallel)
 ```
 
