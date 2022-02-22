@@ -39,6 +39,8 @@ require(corrr)
 require(workflowsets)
 require(kableExtra)
 require(treesnip)
+require(ranger)
+require(baguette)
 ```
 
 # Introduction

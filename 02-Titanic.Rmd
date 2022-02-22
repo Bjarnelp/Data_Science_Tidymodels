@@ -507,7 +507,7 @@ titanic_svm_results <-
     grid = 25,
     control = titanic_svm_control, 
     metrics = metric_set(accuracy,roc_auc),
-    verbose = TRUE
+    verbose = FALSE
   )
 ```
 Let us have a look at the results:
@@ -553,10 +553,222 @@ results_table <- results_table %>% add_row(Model = "Support Vector Machine with 
 results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
 
+### Classification trees: C5.0
+
+For the rest of this chapter we will turn our attention to tree based models. The first model is a simple classification tree based on the C5.0 algorithm.
+
+In general classification trees are highly flexible, deal with NAs quite easily and thus require very little preprocessing. To test this we will look at a few different light preprocessing recipes. One is the basic recipe. One adds  decorrolation and one further imputes NAs:
+
+```{r}
+titanic_c50_rec <- 
+  titanic_baserec
+
+titanic_c50_impute_rec <-
+  titanic_c50_rec %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors())
+```
+
+For the model, we will use a decision tree with engine C5.0:
+```{r}
+titanic_c50_mod <-
+  decision_tree(min_n=tune()) %>% 
+    set_engine("C5.0") %>% 
+    set_mode("classification")
+```
+
+Now we can define the workflow set for the different recipes:
+```{r}
+titanic_c50_wfs <- 
+  workflow_set(
+    preproc = list(rec = titanic_c50_rec,
+                   impute = titanic_c50_impute_rec),
+    models = list(c50 = titanic_c50_mod)
+  )
+```
+
+With just a single tunable parameter, we rely on tidymodels to choose an appropriate grid of size 5 for the parameters.
+
+We are now ready to fit at tune the various models:
+```{r, warning=FALSE}
+titanic_c50_control <- control_grid(
+  save_pred = TRUE,
+  parallel_over = "everything",
+  save_workflow = TRUE
+)
+
+titanic_c50_results <- 
+  titanic_c50_wfs %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = titanic_folds,
+    grid = 5,
+    control = titanic_c50_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = FALSE
+  )
+```
+Let us have a plot of the fitted models and workflows:
+```{r}
+autoplot(titanic_c50_results,rank_metric="accuracy",select_best = TRUE) +
+  geom_text(aes(y=0.45,label= wflow_id), angle=90) +
+  lims(y=c(0.2,0.9)) +
+  theme(legend.position = "none")
+```
+Quite interestingly we see almost similar accuracy from the two workflows, but ROC is higher for the recipe without imputation. Thus, we will continue with this workflow.
+
+Let us find the best tuning parameters with respect to accuracy:
+```{r}
+titanic_c50_best_parm <-
+   titanic_c50_results %>% 
+   extract_workflow_set_result("rec_c50") %>% 
+   select_best(metric="roc_auc")
+titanic_c50_best_parm
+```
+So, the best tree has minimal node size 6.
+
+We can now define best workflow and fit to the training data
+```{r}
+titanic_c50_best_wf <- titanic_c50_results %>% 
+  extract_workflow("rec_c50") %>% 
+  finalize_workflow(titanic_c50_best_parm)
+
+titanic_c50_best_mod <- fit(titanic_c50_best_wf,titanic_train_model)
+
+titanic_c50_pred <- predict(titanic_c50_best_mod,new_data=titanic_test)
+```
+We are now ready to write the predictions to a file and upload to Kaggle:
+```{r}
+cbind(PassengerId = titanic_test$PassengerId,titanic_c50_pred) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_c50_pred.csv")
+```
+
+The Kaggle score is 0.78468, which is quite interesting, since simple classification trees are usually weak learnes. This will make the next two sections, where we look at bagging and boosting trees quite interesting.
+
+Lets us add the results to our table
+```{r}
+results_table <- results_table %>% add_row(Model = "C5.0 classification tree with minimum leaf size 6", Score="0.78468")
+results_table %>% kbl() %>% kable_material(c("striped","hover"))
+```
+
 ### Bagged tree models: Bagged C5.0 and Random Forests
 
+After our initial tour de simple models, we will now turn our attention to ensemble learning methods. In this subsection we will investigate bagging methods for trees. Specifically we will have a look at traditional bagged C5.0 trees and Random Forests. Traditionally bagged trees have the disadvantage of generating a lot of correlated trees, which dilutes the advantages of ensembles a bit. By using random forests, this should be offset.
 
+As for the simple classification C5.0 tree, bagged trees require very little preprocessing. To some extend, imputing missing values could lead to a difference in prediction. The Random Forest algorithm needs to have missing values imputed. Thus we will use a base recipe as well as the base recipe with imputation of missed values for preprocessing:
+```{r}
+titanic_bagged_rec <- 
+  titanic_baserec
+
+titanic_bagged_impute_rec <-
+  titanic_bagged_rec %>% 
+  step_impute_median(all_numeric_predictors()) %>% 
+  step_impute_mode(all_nominal_predictors())
+```
+
+For the model, we will use a decision tree with engine C5.0 or a random forest. Random forests will usually not overfit given a high number of trees. Thus we will not tune the number of trees:
+```{r}
+titanic_bagged_c50_mod <-
+  bag_tree(min_n=tune()) %>% 
+    set_engine("C5.0") %>% 
+    set_mode("classification")
+
+titanic_rf_mod <-
+  rand_forest(mtry = tune(),trees = 1000, min_n=tune()) %>% 
+    set_engine("ranger") %>% 
+    set_mode("classification")
+```
+
+Now we can define the workflow set for the different recipes:
+```{r}
+titanic_bag_wfs <- 
+  workflow_set(
+    preproc = list(rec = titanic_bagged_rec,
+                   impute = titanic_bagged_impute_rec),
+    models = list(bag_c50 = titanic_bagged_c50_mod)
+  )
+
+titanic_rf_wfs <- 
+  workflow_set(
+    preproc = list(impute =  titanic_bagged_impute_rec),
+    models = list(rf= titanic_rf_mod)
+  )
+
+titanic_bagged_wfs <- 
+  bind_rows(titanic_bag_wfs,titanic_rf_wfs)
+```
+This time agian, we rely on tidymodels to choose an appropriate grid for the parameters.
+
+We are now ready to fit and tune the various models:
+```{r, warning=FALSE}
+titanic_bagged_control <- control_grid(
+  save_pred = TRUE,
+  parallel_over = "everything",
+  save_workflow = TRUE
+)
+
+titanic_bagged_results <- 
+  titanic_bagged_wfs %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = titanic_folds,
+    grid = 16,
+    control = titanic_bagged_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = TRUE
+  )
+```
+Let us have a plot of the fitted models and workflows:
+```{r}
+autoplot(titanic_bagged_results,rank_metric="accuracy",select_best = TRUE) +
+  geom_text(aes(y=0.45,label= wflow_id), angle=90) +
+  lims(y=c(0.2,0.9)) +
+  theme(legend.position = "none")
+```
+Quite interestingly we see almost similar accuracy from the two workflows, but ROC is higher for the recipe without imputation. Thus, we will continue with this workflow.
+
+Let us find the best tuning parameters with respect to accuracy:
+```{r}
+titanic_bagged_best_parm <-
+   titanic_bagged_results %>% 
+   extract_workflow_set_result("") %>% 
+   select_best(metric="")
+titanic_bagged_best_parm
+```
+So, the best tree has minimal node size 6.
+
+We can now define best workflow and fit to the training data
+```{r}
+titanic_bagged_best_wf <- titanic_bagged_results %>% 
+  extract_workflow("") %>% 
+  finalize_workflow(titanic_bagged_best_parm)
+
+titanic_bagged_best_mod <- fit(titanic_bagged_best_wf,titanic_train_model)
+
+titanic_bagged_pred <- predict(titanic_bagged_best_mod,new_data=titanic_test)
+```
+We are now ready to write the predictions to a file and upload to Kaggle:
+```{r}
+cbind(PassengerId = titanic_test$PassengerId,titanic_bagged_pred) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_bagged_pred.csv")
+```
+
+The Kaggle score is 0.78468, which is quite interesting, since simple classification trees are usually weak learnes. This will make the next two sections, where we look at bagging and boosting trees quite interesting.
+
+Lets us add the results to our table
+```{r}
+results_table <- results_table %>% add_row(Model = "C5.0 classification tree with minimum leaf size 6", Score="0.78468")
+results_table %>% kbl() %>% kable_material(c("striped","hover"))
+```
 
 ### Boosted tree models: XGBoost and lightGBM.
+
+In this final subsection of models we will have a look at a different class of ensemble methods. Where bagged trees rely on bootstrapping the data to build a host of trees, boosting relies on building trees, that capture the features that have not yet been explained by the previous models. Thus, boosting is an example of a slow learner. And just as in the real world, slow learning often proves to be the most efficient. We will here have a look at two algorithms. The first is XGBoost, well known for being 
+
+## Summary
+
+## Shiny classification app
 
 
