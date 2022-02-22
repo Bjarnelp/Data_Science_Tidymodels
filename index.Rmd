@@ -41,6 +41,7 @@ require(kableExtra)
 require(treesnip)
 require(ranger)
 require(baguette)
+require(parallel)
 ```
 
 # Introduction
