@@ -819,8 +819,7 @@ Now we can define the workflow sets:
 titanic_boost_wfs <- 
   workflow_set(
     preproc = list(rec =  titanic_boost_rec),
-    models = list(xgb= titanic_xgb_mod,
-                  lgb= titanic_lgb_mod)
+    models = list(xgb= titanic_xgb_mod)
   )
 ```
 
@@ -839,10 +838,54 @@ titanic_boost_results <-
     seed = 1234,
     resamples = titanic_folds,
     grid = titanic_boost_grid,
-    control = titanic_boost_control, 
-    metrics = metric_set(accuracy,roc_auc),
-    verbose = TRUE
+    control = titanic_boost_control,
+    verbose = TRUE,
+    objective = "binary:logistic",
+    eval_metric = "logloss"
   )
+```
+Let us have a plot of the fitted models and workflows:
+```{r}
+autoplot(titanic_boost_results,rank_metric="accuracy",select_best = TRUE) +
+  geom_text(aes(y=0.65,label= wflow_id), angle=90) +
+  lims(y=c(0.4,0.9)) +
+  theme(legend.position = "none")
+```
+We see that both accuracy and ROC are in the same ballpark as for the other models. It will be interesting to see if the XGBoost is better at generalizing the results to the test data.
+
+Let us find the best tuning parameters with respect to accuracy:
+```{r}
+titanic_boost_best_parm <-
+   titanic_boost_results %>% 
+   extract_workflow_set_result("rec_xgb") %>% 
+   select_best(metric="accuracy")
+titanic_boost_best_parm
+```
+We see that the best results are obtained with 500 trees, minimum node size when splitting of 11, a tree depth of each tree of 4 and a learning rate of 0.1. The learning rate is seen to be lower than the default learning rate for the XGBoost engine of 0.3
+
+We can now define best workflow and fit to the training data
+```{r}
+titanic_boost_best_wf <- titanic_boost_results %>% 
+  extract_workflow("rec_xgb") %>% 
+  finalize_workflow(titanic_boost_best_parm)
+
+titanic_boost_best_mod <- fit(titanic_boost_best_wf,titanic_train_model)
+
+titanic_boost_pred <- predict(titanic_boost_best_mod,new_data=titanic_test)
+```
+We are now ready to write the predictions to a file and upload to Kaggle:
+```{r}
+cbind(PassengerId = titanic_test$PassengerId,titanic_boost_pred) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_boost_pred.csv")
+```
+
+The Kaggle score is 0., which
+
+Lets us add the results to our table
+```{r}
+results_table <- results_table %>% add_row(Model = "XGBoost with", Score="0.76794")
+results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
 
 ## Summary
