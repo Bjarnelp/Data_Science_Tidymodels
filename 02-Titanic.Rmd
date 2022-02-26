@@ -684,7 +684,8 @@ Now we can define the workflow set for the different recipes:
 ```{r}
 titanic_bag_wfs <- 
   workflow_set(
-    preproc = list(rec = titanic_bagged_rec,
+    preproc = list(
+                    # rec = titanic_bagged_rec,
                    impute = titanic_bagged_impute_rec),
     models = list(bag_c50 = titanic_bagged_c50_mod)
   )
@@ -712,6 +713,7 @@ titanic_bagged_results <-
   titanic_bagged_wfs %>% 
   workflow_map(
     seed = 1234,
+    fn = "tune_bayes",
     resamples = titanic_folds,
     grid = 16,
     control = titanic_bagged_control, 
