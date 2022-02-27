@@ -44,8 +44,6 @@ require(baguette)
 require(xgboost)
 require(randomForest)
 require(lme4)
-require(parallel)
-require(doParallel)
 require(stringr)
 ```
 

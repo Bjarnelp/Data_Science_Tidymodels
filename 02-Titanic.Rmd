@@ -1053,7 +1053,8 @@ With this we are ready to do the actual modelling. With all the preprocessing al
 ```{r}
 imp_rec <-
   recipe(Survived ~ ., data=train2) %>% 
-  update_role(PassengerId,new_role="ID")
+  update_role(PassengerId,new_role="ID") %>% 
+  step_impute_mode(Embarked)
 ```
 
 Since the random forest classifier will have a problem with dealing with the family name column, we will do the dummy encoding separately before fitting the random forest:
@@ -1117,7 +1118,7 @@ Let us define the control set and fit the models:
 ```{r}
 imp_control <- control_grid(
   save_pred = TRUE,
-  parallel_over = "everything",
+#  parallel_over = "everything",
   save_workflow = TRUE
 )
 
