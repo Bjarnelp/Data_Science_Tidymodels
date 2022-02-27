@@ -163,7 +163,7 @@ c50_results <-
     seed = 1234,
     resamples = folds,
     grid = 10,
-    control = c50_control, 
+    control = _control, 
     metrics = metric_set(accuracy,roc_auc),
     verbose = TRUE
   )
@@ -201,8 +201,8 @@ rf_model <- rand_forest(trees = tune(), min_n=tune()) %>%
 
 rf_workflowset <- 
   workflow_set(
-    preproc = list(age = rec),
-    models = list(rf=rf_model))
+    preproc = list(rec = imp_rec),
+    models = list(rf=imp_rf))
 
 rf_results <- 
   rf_workflowset %>% 
@@ -210,7 +210,7 @@ rf_results <-
     seed = 1234,
     resamples = folds,
     grid = 25,
-    control = c50_control, 
+    control = imp_control, 
     metrics = metric_set(accuracy,roc_auc),
     verbose = TRUE
   )
@@ -237,3 +237,54 @@ rf_pred <- predict(rf_mod,new_data=test)
 cbind(PassengerId = test$PassengerId,rf_pred) %>% 
   rename(Survived = .pred_class) %>% 
   write_csv("./rf_pred_ac.csv")
+
+lgb_mod <- boost_tree(trees=tune(),min_n=tune(),tree_depth=tune(),
+                              learn_rate = tune(), loss_reduction = tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("lightgbm")
+
+boost_grid <- grid_regular(trees(),min_n(),tree_depth(),
+                                   learn_rate(),loss_reduction(),levels=5) 
+
+titanic_boost_wfs <- 
+  workflow_set(
+    preproc = list(rec =  imp_rec),
+    models = list(lgbm= lgb_mod)
+  )
+
+titanic_boost_control <- control_grid(
+  save_pred = TRUE,
+  parallel_over = "nothing",
+  save_workflow = TRUE
+)
+
+folds <- vfold_cv(train2,v=10,strata=Survived)
+
+titanic_boost_results <- 
+  titanic_boost_wfs %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = folds,
+    grid = boost_grid,
+    control = titanic_boost_control,
+    verbose = TRUE,
+    objective = "binary:logistic",
+    eval_metric = "logloss"
+  )
+
+imp_control <- control_grid(
+  save_pred = TRUE,
+  parallel_over = "everything",
+  save_workflow = TRUE
+)
+
+imp_results <- 
+  imp_workflowset2 %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = imp_folds,
+    grid = 25,
+    control = imp_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = TRUE
+  )

@@ -42,10 +42,11 @@ require(treesnip)
 require(ranger)
 require(baguette)
 require(xgboost)
-require(lightgbm)
+require(randomForest)
 require(lme4)
 require(parallel)
 require(doParallel)
+require(stringr)
 ```
 
 Finally let us set up for parallel processing:

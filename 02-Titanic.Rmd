@@ -882,13 +882,270 @@ cbind(PassengerId = titanic_test$PassengerId,titanic_boost_pred) %>%
   write_csv("./titanic_boost_pred.csv")
 ```
 
-The Kaggle score is 0., which
+The Kaggle score is 0.75837, which could indicate an overfitted model.
 
 Lets us add the results to our table
 ```{r}
-results_table <- results_table %>% add_row(Model = "XGBoost with", Score="0.76794")
+results_table <- results_table %>% add_row(Model = "XGBoost with 500 trees, min_n=11 and tree_depth = 4, ", Score="0.75837")
 results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
+
+With this, we conclude the test of simple models. The best model was a bagged C5.0 tree with a score of 0.78708. This was achieved with a fairly simple preprocessing and CV-tuning of hyperparameters. Though acceptable, it is not sufficient to reach the desired score of at least 80\%. Thus we will have to make a more refined model.
+
+## Improved model for Titanic data
+
+In this section we will look at the preprocessing of data from the Titanic data set. In the simple models, we imputed fare and age by median values for the entire population and embark by mode. Though reasonable assumptions, we will have to improve at least on the age imputation. Moreover we will introduce new variables derived from the name column.
+
+Let us start by loading the data again:
+
+```{r}
+train2 <- read_csv("./titanic_train.csv")
+test2 <- read_csv("./titanic_test.csv")
+```
+First we will remove the *Ticket* and *Cabin* columns as well as change data type for passenger class, *Pclass*, and outcome varible, *Survived*. The same operations with the exception of the survived data, is done on the test data.
+```{r}
+train2 <- train2 %>% 
+  mutate(Ticket = NULL) %>% 
+  mutate(Cabin = NULL) %>% 
+  mutate(Survived = as_factor(Survived)) %>% 
+  mutate(Pclass = as_factor(Pclass))
+
+test2 <- test2 %>% 
+  mutate(Ticket = NULL) %>% 
+  mutate(Cabin = NULL) %>% 
+  mutate(Pclass = as_factor(Pclass))
+```
+
+Next we will add a new variable *FamilySize* to the data sets. We distinguish between singles, couples, small families and large families. Singles are identified as having both *Parch* and *SibSp* equal to 0. Couples have *SibSp* equal to 1 and *Parch* equal to 0. Small familes have sum of *Parch* and *SipSp* less than 5 and large familes greater than 5:
+
+```{r}
+train2 <- train2 %>% 
+  mutate(Family = case_when((SibSp == 0 & Parch == 0) ~ "Single",
+                            (SibSp == 1 & Parch == 0) ~ "Couple",
+                            between((SibSp + Parch),1,4) ~ "Small",
+                            SibSp+Parch > 4 ~"Large"))
+  
+test2 <- test2 %>% 
+  mutate(Family = case_when((SibSp == 0 & Parch == 0) ~ "Single",
+                            (SibSp == 1 & Parch == 0) ~ "Couple",
+                            between((SibSp + Parch),1,4) ~ "Small",
+                            SibSp+Parch > 4 ~"Large"))
+  
+
+
+```
+
+The next new variable is the *Title*. There are several titles for the passengers aboard
+the Titanic, and some of the are only covering a very few people. Thus we will group the titles in fewer titles:
+```{r}
+train2 <- train2 %>% 
+  mutate(Title = case_when(
+    str_detect(Name,coll("Mr.")) ~ "Mr",
+    str_detect(Name,coll("Mrs.")) ~ "Mrs",
+    str_detect(Name,coll("Ms.")) ~ "Miss",
+    str_detect(Name,coll("Miss.")) ~ "Miss",
+    str_detect(Name,coll("Master.")) ~ "Master",
+    str_detect(Name,coll("Dr.")) ~ "Doktor",
+    str_detect(Name,coll("Rev.")) ~ "Mr",
+    str_detect(Name,coll("Mlle.")) ~ "Miss",
+    str_detect(Name,coll("Mme.")) ~ "Mrs",
+    str_detect(Name,coll("Sir.")) ~ "Noble",
+    str_detect(Name,coll("Countess.")) ~ "Noble",
+    str_detect(Name,coll("Lady.")) ~ "Noble",
+    str_detect(Name,coll("Jonkheer.")) ~ "Noble",
+    str_detect(Name,coll("Don.")) ~ "Noble",
+    str_detect(Name,coll("Dona.")) ~ "Noble",
+    str_detect(Name,coll("Col.")) ~ "Military",
+    str_detect(Name,coll("Capt.")) ~ "Military",
+    str_detect(Name,coll("Major.")) ~ "Military",
+  ))
+  
+test2 <- test2 %>% 
+  mutate(Title = case_when(
+    str_detect(Name,coll("Mr.")) ~ "Mr",
+    str_detect(Name,coll("Mrs.")) ~ "Mrs",
+    str_detect(Name,coll("Ms.")) ~ "Miss",
+    str_detect(Name,coll("Miss.")) ~ "Miss",
+    str_detect(Name,coll("Master.")) ~ "Master",
+    str_detect(Name,coll("Dr.")) ~ "Doktor",
+    str_detect(Name,coll("Rev.")) ~ "Mr",
+    str_detect(Name,coll("Mlle.")) ~ "Miss",
+    str_detect(Name,coll("Mme.")) ~ "Mrs",
+    str_detect(Name,coll("Sir.")) ~ "Noble",
+    str_detect(Name,coll("Countess.")) ~ "Noble",
+    str_detect(Name,coll("Lady.")) ~ "Noble",
+    str_detect(Name,coll("Jonkheer.")) ~ "Noble",
+    str_detect(Name,coll("Don.")) ~ "Noble",
+    str_detect(Name,coll("Dona.")) ~ "Noble",
+    str_detect(Name,coll("Col.")) ~ "Military",
+    str_detect(Name,coll("Capt.")) ~ "Military",
+    str_detect(Name,coll("Major.")) ~ "Military",
+  ))
+```
+
+The final new feature is the family name of the passengers. In the name column, the family name is located first and separated by a comma. Thus we will retrieve all characters before the comma in the name column. Finally we will remove redundant columns together with the name column:
+```{r}
+train2 <- train2 %>% 
+  mutate(FamilyNameLoc = str_locate(Name,",")[,1]) %>% 
+  mutate(FamilyName = str_sub(Name,1,FamilyNameLoc-1)) %>% 
+  mutate(Name=NULL) %>% 
+  mutate(FamilyNameLoc = NULL)
+
+test2 <- test2 %>% 
+  mutate(FamilyNameLoc = str_locate(Name,",")[,1]) %>% 
+  mutate(FamilyName = str_sub(Name,1,FamilyNameLoc-1)) %>% 
+  mutate(Name=NULL) %>% 
+  mutate(FamilyNameLoc = NULL)
+```
+
+With the new variables introduced, let us have a look at missing data for train set and test set:
+```{r}
+train2 %>% 
+  select(which(colSums(is.na(.))>0)) %>% 
+  summarise_all(~ sum(is.na(.)))
+
+test2 %>% 
+  select(which(colSums(is.na(.))>0)) %>% 
+  summarise_all(~ sum(is.na(.)))
+```
+The missing data for embarked will be handled by introducing a new level "U":
+```{r}
+train2 <- train2 %>% 
+  mutate(Embarked = if_else(is.na(Embarked),"U",Embarked))
+```
+
+The missing age and fare data will be imputed by the mean of age and fare respectively for passengers from the train data with the same title.
+
+We begin by making a table of mean age and mean fare for each title:
+```{r}
+Impute_table <- train2 %>% 
+  group_by(Title) %>% 
+  summarise(mean_age=mean(Age,na.rm=T),mean_fare=mean(Fare,na.rm=T))
+```
+
+The means are added to the data sets, missing values imputed and the the means are removed from the data sets again.
+```{r}
+train2 <- left_join(train2,Impute_table,by=c("Title")) %>% 
+  mutate(Age = if_else(is.na(Age),mean_age,Age)) %>%
+  mutate(Fare = if_else(is.na(Fare),mean_fare,Fare)) %>% 
+  mutate(mean_age = NULL) %>% 
+  mutate(mean_fare = NULL)
+
+test2 <- left_join(test2,Impute_table,by=c("Title")) %>% 
+  mutate(Age = if_else(is.na(Age),mean_age,Age)) %>%
+  mutate(Fare = if_else(is.na(Fare),mean_fare,Fare)) %>% 
+  mutate(mean_age = NULL) %>% 
+  mutate(mean_fare = NULL)
+```
+
+Let us do one final check that all missing values are gone:
+```{r}
+train2 %>% 
+  select(which(colSums(is.na(.))>0)) %>% 
+  summarise_all(~ sum(is.na(.)))
+
+test2 %>% 
+  select(which(colSums(is.na(.))>0)) %>% 
+  summarise_all(~ sum(is.na(.)))
+```
+
+With this we are ready to do the actual modelling. With all the preprocessing already done, the recipe is very simple:
+```{r}
+imp_rec <-
+  recipe(Survived ~ ., data=train2) %>% 
+  update_role(PassengerId,new_role="ID")
+```
+
+Since the random forest classifier will have a problem with dealing with the family name column, we will do the dummy encoding separately before fitting the random forest:
+```{r}
+imp_rec_rf <- imp_rec %>% 
+  step_dummy(FamilyName)
+```
+
+For best results, we make 5 bootstraps of each of the 10 folds:
+```{r}
+imp_folds <- vfold_cv(train2,strata = Survived,repeats = 1)
+```
+
+We will fit the models that did best for the simple models: C5.0, bagged C5.0, SVM and RF.
+```{r}
+imp_c50 <- 
+  decision_tree(min_n=tune()) %>% 
+  set_engine("C5.0") %>% 
+  set_mode("classification")
+
+imp_bc50 <- 
+  bag_tree(min_n=tune()) %>% 
+  set_engine("C5.0") %>% 
+  set_mode("classification")
+  
+imp_svm_lin <- svm_linear(cost=tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("kernlab", scaled=TRUE)
+imp_svm_pol <- svm_poly(cost=tune(),degree=tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("kernlab", scaled=TRUE)
+imp_svm_radial <- svm_rbf(cost=tune(),rbf_sigma=tune()) %>% 
+  set_mode("classification") %>% 
+  set_engine("kernlab", scaled=TRUE)
+
+#imp_rf <- 
+#  rand_forest(trees = tune(), min_n=tune()) %>% 
+#  set_engine("randomForest") %>% 
+#  set_mode("classification")
+```
+
+Let us define the workflow sets:
+```{r}
+imp_workflowset1 <- 
+  workflow_set(
+    preproc = list(rec = imp_rec),
+    models = list(c50=imp_c50,
+                  bag=imp_bc50,
+                  svm_lin = imp_svm_lin))
+
+imp_workflowset2 <- 
+  workflow_set(
+    preproc = list(rec = imp_rec),
+    models = list(svm_poly = imp_svm_pol,
+                  svm_rbf = imp_svm_radial))
+
+#imp_workflowset <- bind_rows(imp_workflowset1,imp_workflowset2)
+```
+
+Let us define the control set and fit the models:
+```{r}
+imp_control <- control_grid(
+  save_pred = TRUE,
+  parallel_over = "everything",
+  save_workflow = TRUE
+)
+
+imp_results1 <- 
+  imp_workflowset1 %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = imp_folds,
+    grid = 10,
+    control = imp_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = TRUE
+  )
+
+imp_results2 <- 
+  imp_workflowset2 %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = imp_folds,
+    grid = 25,
+    control = imp_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = TRUE
+  )
+
+imp_results <- bind_rows(imp_results1,imp_results2)
+```
+
 
 ## Summary
 
