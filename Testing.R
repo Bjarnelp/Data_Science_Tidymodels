@@ -163,7 +163,7 @@ c50_results <-
     seed = 1234,
     resamples = folds,
     grid = 10,
-    control = _control, 
+    control = c50_control, 
     metrics = metric_set(accuracy,roc_auc),
     verbose = TRUE
   )
@@ -288,3 +288,9 @@ imp_results <-
     metrics = metric_set(accuracy,roc_auc),
     verbose = TRUE
   )
+all_cores <- parallel::detectCores(logical = FALSE)
+
+cl <- makePSOCKcluster(all_cores)
+registerDoParallel(cl)
+require(parallel)
+require(doParallel)

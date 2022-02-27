@@ -351,8 +351,7 @@ titanic_knn_rec <-
   step_impute_mode(all_nominal_predictors()) %>% 
   step_dummy(all_nominal_predictors()) %>% 
   step_zv(all_predictors()) %>%
-  step_YeoJohnson(all_numeric_predictors()) %>% 
-  step_best_normalize(all_predictors())
+  step_YeoJohnson(all_numeric_predictors())
 
 titanic_knn_decor_rec <- 
   titanic_knn_rec %>% 
@@ -387,7 +386,7 @@ titanic_knn_wfs <-
   )
 ```
 
-We are now ready to fit at tune the various models:
+We are now ready to fit and tune the various models:
 ```{r}
 titanic_knn_control <- control_grid(
   save_pred = TRUE,
@@ -403,7 +402,7 @@ titanic_knn_results <-
     grid = titanic_knn_grid,
     control = titanic_knn_control, 
     metrics = metric_set(accuracy,roc_auc),
-    verbose = FALSE
+    verbose = TRUE
   )
 ```
 Let us have a plot of the fitted models and workflows:
@@ -423,7 +422,7 @@ titanic_knn_best_parm <-
    select_best(metric="accuracy")
 titanic_knn_best_parm
 ```
-So the best option is kNN with n=10, Epanechnikov weight function and L2-distance.
+So the best option is kNN with n=6, rank weight function and L2-distance.
 
 We can now define best workflow and fit to the training data
 ```{r}
@@ -446,7 +445,7 @@ The Kaggle score, is 0.76315. The accuracy is exactly as for the logistic regres
 
 Lets us collect the results in a Tibble, which we can use at the end of the chapter:
 ```{r}
-results_table <- results_table %>% add_row(Model = "10 Nearest Neighbors, Epanechnikov weight, L2 distance", Score="0.76315")
+results_table <- results_table %>% add_row(Model = "6 Nearest Neighbors, Rank weight, L2 distance", Score="0.76315")
 results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
 
@@ -461,7 +460,7 @@ titanic_svm_rec <-
   step_impute_mode(all_nominal_predictors()) %>% 
   step_dummy(all_nominal_predictors()) %>% 
   step_zv(all_predictors()) %>%
-  step_best_normalize(all_predictors())
+  step_YeoJohnson(all_predictors())
 ```
 
 In tidymodels the SVM kernel is defined from the model. We will define three models using respectively Linear, Polynomial and Radial Basis Function kernels.
@@ -507,7 +506,7 @@ titanic_svm_results <-
     grid = 25,
     control = titanic_svm_control, 
     metrics = metric_set(accuracy,roc_auc),
-    verbose = FALSE
+    verbose = TRUE
   )
 ```
 Let us have a look at the results:
@@ -516,22 +515,22 @@ titanic_svm_results %>%
   rank_results(select_best=TRUE) %>% 
   filter(.metric == "accuracy")
 ```
-We see that the best performing model uses a Radial Basis Function kernel.
+We see that the best performing model uses a Polynomial kernel.
 
 Let us find the best tuning parameters with respect to accuracy:
 ```{r}
 titanic_svm_best_parm <-
    titanic_svm_results %>% 
-   extract_workflow_set_result("rec_RBF") %>% 
+   extract_workflow_set_result("rec_Poly") %>% 
    select_best(metric="accuracy")
 titanic_svm_best_parm
 ```
-So the best option is SVM with Radial Basis Function kernel, Cost parameter 6.35 and $\sigma = 0.186$.
+So the best option is SVM with 2nd degree Polynomial kernel with cost parameter 3.69e-3.
 
 We can now define best workflow and fit to the training data
 ```{r}
 titanic_svm_best_wf <- titanic_svm_results %>% 
-  extract_workflow("rec_RBF") %>% 
+  extract_workflow("rec_Poly") %>% 
   finalize_workflow(titanic_svm_best_parm)
 
 titanic_svm_best_mod <- fit(titanic_svm_best_wf,titanic_train_model)
@@ -549,7 +548,7 @@ The Kaggle score is 0.77272, which is a slight improvement over the previous mod
 
 Lets us add the results to our table
 ```{r}
-results_table <- results_table %>% add_row(Model = "Support Vector Machine with Radial Basis Function Kernel", Score="0.77272")
+results_table <- results_table %>% add_row(Model = "Support Vector Machine with 2nd degree polynomial kernel", Score="0.77272")
 results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
 
@@ -605,7 +604,7 @@ titanic_c50_results <-
     grid = 5,
     control = titanic_c50_control, 
     metrics = metric_set(accuracy,roc_auc),
-    verbose = FALSE
+    verbose = TRUE
   )
 ```
 Let us have a plot of the fitted models and workflows:
@@ -684,9 +683,7 @@ Now we can define the workflow set for the different recipes:
 ```{r}
 titanic_bag_wfs <- 
   workflow_set(
-    preproc = list(
-                    # rec = titanic_bagged_rec,
-                   impute = titanic_bagged_impute_rec),
+    preproc = list(impute = titanic_bagged_impute_rec),
     models = list(bag_c50 = titanic_bagged_c50_mod)
   )
 
@@ -713,7 +710,6 @@ titanic_bagged_results <-
   titanic_bagged_wfs %>% 
   workflow_map(
     seed = 1234,
-    fn = "tune_bayes",
     resamples = titanic_folds,
     grid = 16,
     control = titanic_bagged_control, 
@@ -785,7 +781,7 @@ results_table <- results_table %>% add_row(Model = "Random Forest with mtry=3 an
 results_table %>% kbl() %>% kable_material(c("striped","hover"))
 ```
 
-### Boosted tree models: XGBoost and lightGBM.
+### Boosted tree models: XGBoost.
 
 In this final subsection of models we will have a look at a different class of ensemble methods. Where bagged trees rely on bootstrapping the data to build a host of trees, boosting relies on building trees, that capture the features that have not yet been explained by the previous models. Thus, boosting is an example of a slow learner. And just as in the real world, slow learning often proves to be the most efficient. We will here have a look at two algorithms. The first is XGBoost, well known for being one of the most efficient and successful classification algorithms. The downside is, that the algorithm has a wide range of tunable parameters, and thus it can be costly to fit to data. Thus, we will also take a look at lightGBM, which can be up to 7 times faster to fit and tune than XGBoost, but has a small risk of overfitting.
 
@@ -803,11 +799,6 @@ titanic_xgb_mod <- boost_tree(trees=tune(),min_n=tune(),tree_depth=tune(),
                               learn_rate = tune(), loss_reduction = tune()) %>% 
                      set_mode("classification") %>% 
                      set_engine("xgboost")
-
-titanic_lgb_mod <- boost_tree(trees=tune(),min_n=tune(),tree_depth=tune(),
-                              learn_rate = tune(), loss_reduction = tune()) %>% 
-                     set_mode("classification") %>% 
-                     set_engine("lightgbm")
 ```
 
 The associated grid is
@@ -931,9 +922,6 @@ test2 <- test2 %>%
                             (SibSp == 1 & Parch == 0) ~ "Couple",
                             between((SibSp + Parch),1,4) ~ "Small",
                             SibSp+Parch > 4 ~"Large"))
-  
-
-
 ```
 
 The next new variable is the *Title*. There are several titles for the passengers aboard
@@ -1009,12 +997,6 @@ test2 %>%
   select(which(colSums(is.na(.))>0)) %>% 
   summarise_all(~ sum(is.na(.)))
 ```
-
-```{r}
-train2 <- train2 %>% 
-  mutate(Embarked = if_else(is.na(Embarked),"U",Embarked))
-```
-
 The missing age and fare data will be imputed by the mean of age and fare respectively for passengers from the train data with the same title.
 
 We begin by making a table of mean age and mean fare for each title:
@@ -1060,7 +1042,7 @@ imp_rec <-
 
 For best results, we make 5 bootstraps of each of the 10 folds:
 ```{r}
-imp_folds <- vfold_cv(train2,strata = Survived)
+imp_folds <- vfold_cv(train2,strata = Survived,repeats = 5)
 ```
 
 We will fit the models that did best for the simple models; C5.0 and bagged C5.0.
@@ -1078,23 +1060,28 @@ imp_bc50 <-
 
 Let us define the workflow sets:
 ```{r}
-imp_workflowset <- 
+imp_workflowset_c50 <- 
+  workflow_set(
+    preproc = list(rec = imp_rec),
+    models = list(bag=imp_c50))
+
+imp_workflowset_bc50 <- 
   workflow_set(
     preproc = list(rec = imp_rec),
     models = list(bag=imp_bc50))
-
 ```
 
 Let us define the control set and fit the models:
 ```{r}
 imp_control <- control_grid(
   save_pred = TRUE,
-  parallel_over = "resamples",
+  parallel_over = "everything",
   save_workflow = TRUE
 )
-
-imp_results <- 
-  imp_workflowset %>% 
+```
+```{r}
+imp_results_c50 <- 
+  imp_workflowset_c50 %>% 
   workflow_map(
     seed = 1234,
     resamples = imp_folds,
@@ -1103,6 +1090,23 @@ imp_results <-
     metrics = metric_set(accuracy,roc_auc),
     verbose = TRUE
   )
+```
+```{r}
+imp_bc50_grid <- tibble(min_n=c(4,8,11,14,18))
+
+imp_results_bc50 <- 
+  imp_workflowset_bc50 %>% 
+  workflow_map(
+    seed = 1234,
+    resamples = imp_folds,
+    grid = imp_bc50_grid,
+    control = imp_control, 
+    metrics = metric_set(accuracy,roc_auc),
+    verbose = TRUE
+  )
+```
+```{r}
+imp_results<- bind_rows(imp_results_c50,imp_results_bc50)
 ```
 
 Let us have a look at the results:
