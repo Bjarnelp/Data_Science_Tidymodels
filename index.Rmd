@@ -42,15 +42,16 @@ require(treesnip)
 require(ranger)
 require(baguette)
 require(xgboost)
-require(randomForest)
 require(lme4)
 require(stringr)
 ```
 
 Finally let us set up for parallel processing:
 ```{r}
+library(parallel)
 all_cores <- parallel::detectCores(logical = FALSE)
 
+library(doParallel)
 cl <- makePSOCKcluster(all_cores)
 registerDoParallel(cl)
 ```
