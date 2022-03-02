@@ -26,3 +26,9 @@ knn
 svm
 xgboost
 lightgbm.
+classification-trees-c5.0
+bagged-tree-models-bagged-c5.0-and-random-forests
+boosted-tree-models-xgboost.
+improved-model-for-titanic-data
+summary
+shiny-classification-app

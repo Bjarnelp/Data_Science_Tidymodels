@@ -46,17 +46,6 @@ require(lme4)
 require(stringr)
 ```
 
-Finally let us set up for parallel processing:
-```{r}
-library(parallel)
-all_cores <- parallel::detectCores(logical = FALSE)
-
-library(doParallel)
-cl <- makePSOCKcluster(all_cores)
-registerDoParallel(cl)
-```
-
-
 # Introduction
 
 In this book I will give examples of the use of Tidyverse packages in data science studies.

@@ -891,8 +891,8 @@ Let us start by loading the data again:
 
 ```{r}
 set.seed(123)
-train2 <- read_csv("./titanic_train.csv")
-test2 <- read_csv("./titanic_test.csv")
+train2 <- read_csv("./titanic_train.csv",show_col_types = F)
+test2 <- read_csv("./titanic_test.csv",show_col_types = F)
 ```
 First we will remove the *Ticket* and *Cabin* columns as well as change data type for passenger class, *Pclass*, and outcome varible, *Survived*. The same operations with the exception of the survived data, is done on the test data.
 ```{r}
@@ -912,16 +912,18 @@ Next we will add a new variable *FamilySize* to the data sets. We distinguish be
 
 ```{r}
 train2 <- train2 %>% 
+  mutate(FamilySize = SibSp + Parch) %>% 
   mutate(Family = case_when((SibSp == 0 & Parch == 0) ~ "Single",
                             (SibSp == 1 & Parch == 0) ~ "Couple",
-                            between((SibSp + Parch),1,4) ~ "Small",
-                            SibSp+Parch > 4 ~"Large"))
+                            between(FamilySize,1,5) ~ "Small",
+                            SibSp+Parch > 5 ~"Large"))
   
 test2 <- test2 %>% 
+  mutate(FamilySize = SibSp + Parch) %>% 
   mutate(Family = case_when((SibSp == 0 & Parch == 0) ~ "Single",
                             (SibSp == 1 & Parch == 0) ~ "Couple",
-                            between((SibSp + Parch),1,4) ~ "Small",
-                            SibSp+Parch > 4 ~"Large"))
+                            between((SibSp + Parch),1,5) ~ "Small",
+                            SibSp+Parch > 5 ~"Large"))
 ```
 
 The next new variable is the *Title*. There are several titles for the passengers aboard
@@ -1031,121 +1033,79 @@ test2 %>%
   select(which(colSums(is.na(.))>0)) %>% 
   summarise_all(~ sum(is.na(.)))
 ```
-Only the embarked column in the training data contains missing values. These will be imputed by the mode in the preprocessing step.
-
 With this we are ready to do the actual modelling. With all the preprocessing already done, the recipe is very simple:
 ```{r}
 imp_rec <-
   recipe(Survived ~ ., data=train2) %>% 
-  update_role(PassengerId,new_role="ID") 
+  update_role(PassengerId,new_role="ID") %>% 
+  step_impute_mode(Embarked)
 ```
 
-For best results, we make 5 bootstraps of each of the 10 folds:
+We will only fit the bagged C5.0 models, since they did best for the simple preprocessing. Somehow R is having problems tuning the bagged C5.0 model with the data set at hand, so instead we will fit models with min_n ranging from 7 to 10.
 ```{r}
-imp_folds <- vfold_cv(train2,strata = Survived,repeats = 5)
-```
-
-We will fit the models that did best for the simple models; C5.0 and bagged C5.0.
-```{r}
-imp_c50 <- 
-  decision_tree(min_n=tune()) %>% 
+imp_bc50_7 <- 
+  bag_tree(min_n=7) %>% 
   set_engine("C5.0") %>% 
   set_mode("classification")
 
-imp_bc50 <- 
-  bag_tree(min_n=tune()) %>% 
+imp_bc50_8 <- 
+  bag_tree(min_n=8) %>% 
+  set_engine("C5.0") %>% 
+  set_mode("classification")
+
+imp_bc50_9 <- 
+  bag_tree(min_n=9) %>% 
+  set_engine("C5.0") %>% 
+  set_mode("classification")
+
+imp_bc50_10 <- 
+  bag_tree(min_n=10) %>% 
   set_engine("C5.0") %>% 
   set_mode("classification")
 ```
 
 Let us define the workflow sets:
 ```{r}
-imp_workflowset_c50 <- 
-  workflow_set(
-    preproc = list(rec = imp_rec),
-    models = list(bag=imp_c50))
+imp_workflow_bc50_7 <- 
+  workflow(imp_rec,imp_bc50_7)
 
-imp_workflowset_bc50 <- 
-  workflow_set(
-    preproc = list(rec = imp_rec),
-    models = list(bag=imp_bc50))
+imp_workflow_bc50_8 <- 
+  workflow(imp_rec,imp_bc50_8)
+
+imp_workflow_bc50_9 <- 
+  workflow(imp_rec,imp_bc50_9)
+
+imp_workflow_bc50_10 <- 
+  workflow(imp_rec,imp_bc50_10)
 ```
 
-Let us define the control set and fit the models:
+We can now fit each of the models to the training data
 ```{r}
-imp_control <- control_grid(
-  save_pred = TRUE,
-  parallel_over = "everything",
-  save_workflow = TRUE
-)
-```
-```{r}
-imp_results_c50 <- 
-  imp_workflowset_c50 %>% 
-  workflow_map(
-    seed = 1234,
-    resamples = imp_folds,
-    grid = 10,
-    control = imp_control, 
-    metrics = metric_set(accuracy,roc_auc),
-    verbose = TRUE
-  )
-```
-```{r}
-imp_bc50_grid <- tibble(min_n=c(4,8,11,14,18))
+imp_best_mod_bc50_7 <- fit(imp_workflow_bc50_7,train2)
+imp_best_mod_bc50_8 <- fit(imp_workflow_bc50_8,train2)
+imp_best_mod_bc50_9 <- fit(imp_workflow_bc50_9,train2)
+imp_best_mod_bc50_10 <- fit(imp_workflow_bc50_10,train2)
 
-imp_results_bc50 <- 
-  imp_workflowset_bc50 %>% 
-  workflow_map(
-    seed = 1234,
-    resamples = imp_folds,
-    grid = imp_bc50_grid,
-    control = imp_control, 
-    metrics = metric_set(accuracy,roc_auc),
-    verbose = TRUE
-  )
-```
-```{r}
-imp_results<- bind_rows(imp_results_c50,imp_results_bc50)
-```
-
-Let us have a look at the results:
-```{r}
-autoplot(imp_results,rank_metric="accuracy") +
-  geom_text(aes(y=0.65,label= wflow_id), angle=90) +
-  lims(y=c(0.4,0.9)) +
-  theme(legend.position = "none")
-```
-It seems that with regard to both accuracy and AUC, the bagged C5.0 model performs best.
-
-Let us find the best tuning parameters with respect to accuracy:
-```{r}
-imp_best_parm <-
-   imp_results %>% 
-   extract_workflow_set_result("rec_bag") %>% 
-   select_best(metric="accuracy")
-imp_best_parm
-```
-We see that the best results are obtained with a minimum node size when splitting of 8.
-
-We can now define best workflow and fit to the training data
-```{r}
-imp_best_wf <- imp_results %>% 
-  extract_workflow("rec_bag") %>% 
-  finalize_workflow(imp_best_parm)
-
-imp_best_mod <- fit(imp_best_wf,train2)
-
-imp_pred <- predict(imp_best_mod,new_data=test2)
+imp_pred_bc50_7 <- predict(imp_best_mod_bc50_7,new_data=test2)
+imp_pred_bc50_8 <- predict(imp_best_mod_bc50_8,new_data=test2)
+imp_pred_bc50_9 <- predict(imp_best_mod_bc50_9,new_data=test2)
+imp_pred_bc50_10 <- predict(imp_best_mod_bc50_10,new_data=test2)
 ```
 We are now ready to write the predictions to a file and upload to Kaggle:
 ```{r}
-cbind(PassengerId = titanic_test$PassengerId,imp_pred) %>% 
+cbind(PassengerId = test2$PassengerId,imp_pred_bc50_7) %>% 
   rename(Survived = .pred_class) %>% 
-  write_csv("./titanic_imp_pred.csv")
+  write_csv("./titanic_imp_pred_bc50_7.csv")
+cbind(PassengerId = test2$PassengerId,imp_pred_bc50_8) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_imp_pred_bc50_8.csv")
+cbind(PassengerId = test2$PassengerId,imp_pred_bc50_9) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_imp_pred_bc50_9.csv")
+cbind(PassengerId = test2$PassengerId,imp_pred_bc50_10) %>% 
+  rename(Survived = .pred_class) %>% 
+  write_csv("./titanic_imp_pred_bc50_10.csv")
 ```
-
-
 
 
 ## Summary

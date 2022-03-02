@@ -24,7 +24,7 @@
 <meta name="author" content="Bjarne Lund Pedersen" />
 
 
-<meta name="date" content="2022-02-18" />
+<meta name="date" content="2022-03-01" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -169,9 +169,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="3.3.2" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#lda"><i class="fa fa-check"></i><b>3.3.2</b> LDA</a></li>
 <li class="chapter" data-level="3.3.3" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#knn"><i class="fa fa-check"></i><b>3.3.3</b> kNN</a></li>
 <li class="chapter" data-level="3.3.4" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#svm"><i class="fa fa-check"></i><b>3.3.4</b> SVM</a></li>
-<li class="chapter" data-level="3.3.5" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#xgboost"><i class="fa fa-check"></i><b>3.3.5</b> XGBoost</a></li>
-<li class="chapter" data-level="3.3.6" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#lightgbm."><i class="fa fa-check"></i><b>3.3.6</b> lightGBM.</a></li>
+<li class="chapter" data-level="3.3.5" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#classification-trees-c5.0"><i class="fa fa-check"></i><b>3.3.5</b> Classification trees: C5.0</a></li>
+<li class="chapter" data-level="3.3.6" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#bagged-tree-models-bagged-c5.0-and-random-forests"><i class="fa fa-check"></i><b>3.3.6</b> Bagged tree models: Bagged C5.0 and Random Forests</a></li>
+<li class="chapter" data-level="3.3.7" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#boosted-tree-models-xgboost."><i class="fa fa-check"></i><b>3.3.7</b> Boosted tree models: XGBoost.</a></li>
 </ul></li>
+<li class="chapter" data-level="3.4" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#improved-model-for-titanic-data"><i class="fa fa-check"></i><b>3.4</b> Improved model for Titanic data</a></li>
+<li class="chapter" data-level="3.5" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#summary"><i class="fa fa-check"></i><b>3.5</b> Summary</a></li>
+<li class="chapter" data-level="3.6" data-path="titanic---studies-on-classification.html"><a href="titanic---studies-on-classification.html#shiny-classification-app"><i class="fa fa-check"></i><b>3.6</b> Shiny classification app</a></li>
 </ul></li>
 <li class="chapter" data-level="4" data-path="ames-housing-data---regression-methods.html"><a href="ames-housing-data---regression-methods.html"><i class="fa fa-check"></i><b>4</b> Ames Housing Data - regression methods</a></li>
 <li class="chapter" data-level="5" data-path="store-sales---time-series-prediction.html"><a href="store-sales---time-series-prediction.html"><i class="fa fa-check"></i><b>5</b> Store Sales - Time Series Prediction</a></li>
@@ -259,6 +263,20 @@ gitbook.start({
 });
 </script>
 
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
 </body>
 
 </html>
