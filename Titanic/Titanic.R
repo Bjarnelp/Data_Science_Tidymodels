@@ -12,6 +12,7 @@ library(shinyFeedback)
 library(tidyverse)
 library(tidymodels)
 library(baguette)
+library(DT)
 
 classes <- c(1,2,3)
 titles <- c("Mr.","Mrs.","Miss.","Ms.","Master.","Dr.","Rev.","Mlle.","Mme.","Sir.","Countess.","Lady.","Jonkheer.","Don.","Dona.","Col.","Capt.","Major.")
@@ -24,18 +25,22 @@ train_data <- train_data %>%
   mutate(Survived = as_factor(Survived)) %>% 
   mutate(Pclass = as_factor(Pclass))
 
+Impute_table <- train_data %>% 
+  group_by(Title) %>% 
+  summarise(mean_age=mean(Age,na.rm=T),mean_fare=mean(Fare,na.rm=T))
+
 rec <- recipe(Survived ~.,data=train_data) %>% 
   update_role(PassengerId,new_role = "ID") %>% 
   step_impute_mode(Embarked)
 
-model <- 
+model_def <- 
   bag_tree(min_n=7) %>% 
   set_engine("C5.0") %>% 
   set_mode("classification")
 
-wf <- workflow(rec,model)
+wf <- workflow(rec,model_def)
 
-model_fit <- fit(wf,train_data)
+model <- fit(wf,train_data)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -59,7 +64,8 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-            dataTableOutput("table")
+            DT::dataTableOutput("table1"),
+            DT::dataTableOutput("table2")
             )
     )
 )
@@ -76,17 +82,49 @@ server <- function(input, output,session) {
       parch_input <- reactive(input$Parch)
       fare_input <- reactive(input$Fare)
       
-      pred_table <- tibble(PassengerId=c(age_input,sipsp_input),
-#                           Pclass = c(pclass_input),
-#                           Sex = c(sex_input),
-#                           Age = c(age_input),
-#                           SibSp = c(sibsp_input),
-#                           Parch = c(parch_input),
-#                           Fare = c(fare_input)
-                           )
+      reactiveInput <- reactive({
+        df1 <- tibble(Title = title_input(),
+                      FamilyName = familyname_input(),
+                      Pclass = pclass_input(),
+                      Sex = sex_input(),
+                      Age = age_input(),
+                      SipSp = sipsp_input(),
+                      Parch = parch_input(),
+                      Fare = fare_input()
+                      ) %>% 
+          mutate(Title = case_when(
+            str_detect(Name,coll("Mr.")) ~ "Mr",
+            str_detect(Name,coll("Mrs.")) ~ "Mrs",
+            str_detect(Name,coll("Ms.")) ~ "Miss",
+            str_detect(Name,coll("Miss.")) ~ "Miss",
+            str_detect(Name,coll("Master.")) ~ "Master",
+            str_detect(Name,coll("Dr.")) ~ "Doktor",
+            str_detect(Name,coll("Rev.")) ~ "Mr",
+            str_detect(Name,coll("Mlle.")) ~ "Miss",
+            str_detect(Name,coll("Mme.")) ~ "Mrs",
+            str_detect(Name,coll("Sir.")) ~ "Noble",
+            str_detect(Name,coll("Countess.")) ~ "Noble",
+            str_detect(Name,coll("Lady.")) ~ "Noble",
+            str_detect(Name,coll("Jonkheer.")) ~ "Noble",
+            str_detect(Name,coll("Don.")) ~ "Noble",
+            str_detect(Name,coll("Dona.")) ~ "Noble",
+            str_detect(Name,coll("Col.")) ~ "Military",
+            str_detect(Name,coll("Capt.")) ~ "Military",
+            str_detect(Name,coll("Major.")) ~ "Military",
+          )) %>% 
+          
+          
+        return(df1) 
+      })
       
-      output$table <- renderDataTable(pred_table)
+      reactiveData <- reactive({
+        df2 <- train_data
+        df2$predictions <- predict(model,new_data=train_data)
+        return(df2)
+      })
             
+      output$table1 <- DT::renderDataTable(reactiveData())
+      output$table2 <- DT::renderDataTable(reactiveInput())      
 }
 
 
