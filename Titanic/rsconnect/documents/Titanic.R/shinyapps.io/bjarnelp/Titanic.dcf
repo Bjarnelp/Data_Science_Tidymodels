@@ -1,0 +1,14 @@
+name: Titanic
+title: Titanic
+username:
+account: bjarnelp
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5791311
+bundleId: 5648951
+url: https://bjarnelp.shinyapps.io/Titanic/
+when: 1646588134.72741
+lastSyncTime: 1646588134.72741
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: app.R

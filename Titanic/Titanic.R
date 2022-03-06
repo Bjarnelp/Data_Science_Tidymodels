@@ -15,16 +15,12 @@ library(baguette)
 library(DT)
 
 classes <- c(1,2,3)
-titles <- c("Mr.","Mrs.","Miss.","Ms.","Master.","Dr.","Rev.","Mlle.","Mme.","Sir.","Countess.","Lady.","Jonkheer.","Don.","Dona.","Col.","Capt.","Major.")
-sexes <- c("Male","Female")
+titles <- tibble(Title = c("Mr.","Mrs.","Miss.","Ms.","Master.","Dr.","Rev.","Mlle.","Mme.","Sir.","Countess.","Lady.","Jonkheer.","Don.","Dona.","Col.","Capt.","Major."),
+                 Sex = c("male","female","female","female","male","male","male","female","female","male","female","female","male","male","female","male","male","male"))
+
+sexes <- c("male","female")
 embarks <- c("Cherbourg","Queenstown","Southampton")
 
-<<<<<<< HEAD
-# Define UI for application that draws a histogram
-ui <- fluidPage(
-    useShinyFeedback(),
-
-=======
 train_data <- read_csv("./tt_train_pp.csv",show_col_types = FALSE)
 
 train_data <- train_data %>% 
@@ -50,84 +46,46 @@ model <- fit(wf,train_data)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
->>>>>>> f958590304f73bed22f80d139123952c15bff9c9
     # Application title
     titlePanel("Titanic Survival Predictor"),
 
     # Sidebar with a slider input for number of bins 
     sidebarLayout(
         sidebarPanel(
-            selectInput("Title","Title",titles),         #Title input
+            selectInput("Title","Title",titles$Title),         #Title input
             textInput("First","First Name(s)",value=""),                                  #First name input
-<<<<<<< HEAD
-            textInput("Last Name","FamilyName",value=""),                                  #Last name input
-            radioButtons("PClass","Passenger class",classes,inline=T),                                  #Passenger Class
-            radioButtons("Sex","Sex",sexes,inline=T),                                  #Sex
-            numericInput("Age","Age",value=NA,min=0,max=200),
-            numericInput("SibSp","Number of siblings and/or Spouses travelling with you",value=0,min=0,max=10),
-            numericInput("Parch","Number of parents or children travelling with you",value=0,min=0,max=5),
-            sliderInput("Fare","Fare paid",value=20,min=0,max=50,step=0.2,ticks=FALSE),
-            radioButtons()
-=======
             textInput("FamilyName","Last Name",value=""),                                  #Last name input
             radioButtons("Pclass","Passenger class",choiceNames=c("1st","2nd","3rd"),choiceValues=classes,inline=T),                                  #Passenger Class
-            radioButtons("Sex","Sex",sexes,inline=T),                                  #Sex
-            numericInput("Age","Age",value=20,min=0,max=200),
+            radioButtons("Sex","Sex",choiceNames=c("Male","Female"),choiceValues = sexes,inline=T),                                  #Sex
+            numericInput("Age","Age",value=20,min=0,max=120),
             numericInput("SibSp","Number of siblings and/or Spouses travelling with you",value=0,min=0,max=10),
             numericInput("Parch","Number of parents or children travelling with you",value=0,min=0,max=5),
-            sliderInput("Fare","Fare paid",value=20,min=0,max=50,step=0.2,ticks=FALSE),
-            radioButtons("Embark","Point of embarkation",embarks,inline=T)
->>>>>>> f958590304f73bed22f80d139123952c15bff9c9
+            sliderInput("Fare","Fare paid",value=20,min=0,max=100,step=0.2,ticks=FALSE),
+            radioButtons("Embark","Point of embarkation",choiceNames=embarks,choiceValues = c("C","Q","S"),inline=T)
         ),
 
-        # Show a plot of the generated distribution
         mainPanel(
-            DT::dataTableOutput("table1"),
-            DT::dataTableOutput("table2")
-            )
+          fluidRow(
+            column(5,
+                    textOutput("text1"),tags$head(tags$style("#text1{color: black; font-size: 32px; font-style: bold;text-align: center}")),
+                    textOutput("text2"),tags$head(tags$style("#text2{color: black; font-size: 32px; font-style: bold;text-align: center}"))
+            ),
+            column(1),
+            column(4,
+                    plotOutput("picture")
+                   ),
+            column(1)
+            ),
+          fluidRow(
+            column(8,
+                   textOutput("string"),tags$head(tags$style("#string{color: red; font-size: 26px; font-style: bold;text-align: center}"))
+                  )
+          )
+          )
     )
 )
 
-<<<<<<< HEAD
 # Define server logic required to draw a histogram
-server <- function(input, output,session) {
-      train_data <- read_csv("./tt_train_pp.csv")
-
-      train_data <- train_data %>% 
-        mutate(Survived = as_factor(Survived)) %>% 
-        mutate(Pclass = as_factor(Pclass))
-      
-      rec <- recipe(Survived ~.,data=train_data) %>% 
-        update_role(PassengerId,new_role = "ID") %>% 
-        step_impute_mode(Embarked)
-      
-      model <- 
-        bag_tree(min_n=7) %>% 
-        set_engine("C5.0") %>% 
-        set_mode("classification")
-      
-      wf <- workflow(rec,model)
-      
-      model_fit <- fit(wf,train_data)
-      
-      title_input <- reactive({input$Title})
-      firstname_input <- reactive({input$First})
-      familyname_input <- reactive({input$FamilyName})
-      pclass_input <- reactive({input$PClass})
-      sex_input <- reactive({input$Sex})
-      age_input <- reactive({input$Age})
-      sipsp_input <- reactive({input$SibSp})
-      parch_input <- reactive({input$Parch})
-      fare_input <- reactive({input$fare})
-      
-      pred_table <- tibble(PassengerId=c(2000),
-                           Pclass = pclass_input,
-                           Sex = sex_input,
-                           Age = age_input,
-                           SibSp = sibsp_input,
-                           Parch = parch_input,
-                           Fare = 
-=======
 server <- function(input, output,session) {
 
       title_input <- reactive(input$Title)
@@ -136,67 +94,104 @@ server <- function(input, output,session) {
       pclass_input <- reactive(input$Pclass)
       sex_input <- reactive(input$Sex)
       age_input <- reactive(input$Age)
-      sipsp_input <- reactive(input$SibSp)
+      sibsp_input <- reactive(input$SibSp)
       parch_input <- reactive(input$Parch)
       fare_input <- reactive(input$Fare)
+      embark_input <- reactive(input$Embark)
       
-<<<<<<< HEAD
-      reactiveInput <- reactive({
-        df1 <- tibble(Title = title_input(),
+      reactivePredicted <- reactive({
+        df1 <- tibble(PassengerId = 0,
+                      Title = title_input(),
                       FamilyName = familyname_input(),
                       Pclass = pclass_input(),
                       Sex = sex_input(),
                       Age = age_input(),
-                      SipSp = sipsp_input(),
+                      SibSp = sibsp_input(),
                       Parch = parch_input(),
-                      Fare = fare_input()
-                      ) %>% 
+                      Fare = fare_input(),
+                      Embarked = embark_input()
+                     ) %>% 
+          mutate(Pclass = as_factor(Pclass)) %>% 
           mutate(Title = case_when(
-            str_detect(Name,coll("Mr.")) ~ "Mr",
-            str_detect(Name,coll("Mrs.")) ~ "Mrs",
-            str_detect(Name,coll("Ms.")) ~ "Miss",
-            str_detect(Name,coll("Miss.")) ~ "Miss",
-            str_detect(Name,coll("Master.")) ~ "Master",
-            str_detect(Name,coll("Dr.")) ~ "Doktor",
-            str_detect(Name,coll("Rev.")) ~ "Mr",
-            str_detect(Name,coll("Mlle.")) ~ "Miss",
-            str_detect(Name,coll("Mme.")) ~ "Mrs",
-            str_detect(Name,coll("Sir.")) ~ "Noble",
-            str_detect(Name,coll("Countess.")) ~ "Noble",
-            str_detect(Name,coll("Lady.")) ~ "Noble",
-            str_detect(Name,coll("Jonkheer.")) ~ "Noble",
-            str_detect(Name,coll("Don.")) ~ "Noble",
-            str_detect(Name,coll("Dona.")) ~ "Noble",
-            str_detect(Name,coll("Col.")) ~ "Military",
-            str_detect(Name,coll("Capt.")) ~ "Military",
-            str_detect(Name,coll("Major.")) ~ "Military",
+            str_detect(Title,coll("Mr.")) ~ "Mr",
+            str_detect(Title,coll("Mrs.")) ~ "Mrs",
+            str_detect(Title,coll("Ms.")) ~ "Miss",
+            str_detect(Title,coll("Miss.")) ~ "Miss",
+            str_detect(Title,coll("Master.")) ~ "Master",
+            str_detect(Title,coll("Dr.")) ~ "Doktor",
+            str_detect(Title,coll("Rev.")) ~ "Mr",
+            str_detect(Title,coll("Mlle.")) ~ "Miss",
+            str_detect(Title,coll("Mme.")) ~ "Mrs",
+            str_detect(Title,coll("Sir.")) ~ "Noble",
+            str_detect(Title,coll("Countess.")) ~ "Noble",
+            str_detect(Title,coll("Lady.")) ~ "Noble",
+            str_detect(Title,coll("Jonkheer.")) ~ "Noble",
+            str_detect(Title,coll("Don.")) ~ "Noble",
+            str_detect(Title,coll("Dona.")) ~ "Noble",
+            str_detect(Title,coll("Col.")) ~ "Military",
+            str_detect(Title,coll("Capt.")) ~ "Military",
+            str_detect(Title,coll("Major.")) ~ "Military",
           )) %>% 
-          
-          
+          mutate(Family = case_when((sibsp_input() == 0 & parch_input() == 0) ~ "Single",
+                                    (sibsp_input() == 1 & parch_input() == 0) ~ "Couple",
+                                    between(sibsp_input()+parch_input(),1,5) ~ "Small",
+                                    sibsp_input()+parch_input() > 5 ~"Large"))
+        
+          df1$predictions <- predict(model,new_data=df1,type="prob")[2]
+        
         return(df1) 
       })
-=======
-      pred_table <- tibble(PassengerId=c(age_input,sipsp_input),
-#                           Pclass = c(pclass_input),
-#                           Sex = c(sex_input),
-#                           Age = c(age_input),
-#                           SibSp = c(sibsp_input),
-#                           Parch = c(parch_input),
-#                           Fare = c(fare_input)
->>>>>>> f958590304f73bed22f80d139123952c15bff9c9
-                           )
->>>>>>> 4508daf73172c59bce3dd59b2c0b81797cf5d49e
-      
-      reactiveData <- reactive({
-        df2 <- train_data
-        df2$predictions <- predict(model,new_data=train_data)
-        return(df2)
-      })
-            
-      output$table1 <- DT::renderDataTable(reactiveData())
-      output$table2 <- DT::renderDataTable(reactiveInput())      
-}
 
+
+      predicted <- reactive({
+        value <- reactivePredicted()$predictions[1]
+        
+        return(value)
+      })
+      
+      textstring <- reactive({
+        text_list <-c(
+          "Do I feel lucky? Well, do ya, punk?",
+          "Death never takes the wise man by surprise",
+          "Life is hard. After all, it kills you",
+          "Oh, I am fortunes fool",
+          "Did you remember to buy a lottery ticket?"
+        )
+        
+        string <- 
+          ifelse(predicted()<0.2,text_list[1],
+                 ifelse(predicted()<0.4,text_list[2],
+                        ifelse(predicted()<0.6,text_list[3],
+                               ifelse(predicted()<0.8,text_list[4],text_list[5]))))
+        
+        return(string)
+      })
+      
+      filter_title <- reactive({
+        list <- titles %>% filter(Sex == sex_input()) %>% select(Title)
+      })
+      
+      observeEvent(input$Sex,
+                   {
+                     updateSelectInput(session,"Title",choices = filter_title(),selected=head(filter_title(),1))
+                   })
+      
+      output$table2 <- DT::renderDataTable(reactivePredicted())      
+      
+      output$text1 <- renderText({paste0("Probability of surviving is")})
+      output$text2 <- renderText({paste0(round(100*predicted(),1),"%")})
+      
+      output$string <- renderText({paste0(textstring())})
+      
+      output$picture <- renderImage({
+        n <- ifelse(predicted()<0.34,3,
+               ifelse(predicted()<0.67,2,1))
+
+        filename <- normalizePath(file.path('./images',paste('smiley_new',n,'.jpeg', sep='')))
+        
+        list(src=filename,height=300,width=300)
+      },deleteFile = FALSE)      
+}
 
 # Run the application 
 shinyApp(ui = ui, server = server)
